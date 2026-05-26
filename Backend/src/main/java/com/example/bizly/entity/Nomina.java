@@ -10,17 +10,14 @@ public class Nomina {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Datos del periodo
-    private String periodo;
+  
 
     // Datos del empleado (embebidos)
     private String nombreEmpleado;
-    private String cargoEmpleado;
+    private String cedula;
     private Double sueldoBase;
 
-    // Cálculos de nómina
-    private Double deducciones;
-    private Double totalPagar;
+  
 
     // Getters y Setters
 
@@ -28,13 +25,7 @@ public class Nomina {
         return id;
     }
 
-    public String getPeriodo() {
-        return periodo;
-    }
-
-    public void setPeriodo(String periodo) {
-        this.periodo = periodo;
-    }
+    
 
     public String getNombreEmpleado() {
         return nombreEmpleado;
@@ -44,12 +35,12 @@ public class Nomina {
         this.nombreEmpleado = nombreEmpleado;
     }
 
-    public String getCargoEmpleado() {
-        return cargoEmpleado;
+    public String getCedula() {
+        return cedula;
     }
 
-    public void setCargoEmpleado(String cargoEmpleado) {
-        this.cargoEmpleado = cargoEmpleado;
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
     }
 
     public Double getSueldoBase() {
@@ -59,20 +50,6 @@ public class Nomina {
     public void setSueldoBase(Double sueldoBase) {
         this.sueldoBase = sueldoBase;
     }
-
-    public Double getDeducciones() {
-        return deducciones;
-    }
-
-    public void setDeducciones(Double deducciones) {
-        this.deducciones = deducciones;
-    }
-
-    public Double getTotalPagar() {
-        return totalPagar;
-    }
-
-    public void setTotalPagar(Double totalPagar) {
-        this.totalPagar = totalPagar;
-    }
+   
 }
+    

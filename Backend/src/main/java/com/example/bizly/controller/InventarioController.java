@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/inventario")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:8080")
 public class InventarioController {
 
     @Autowired
