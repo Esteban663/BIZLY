@@ -1,17 +1,19 @@
 import { ProductosComponent } from './productos/app/productos/productos';
 import { Dashboard } from './dashboard/dashboard';
 import { Routes } from '@angular/router';
-
+import { LoginComponent } from './auth/components/login/login.component';
 export const routes: Routes = [
-  // Ruta por defecto (redirige a productos al entrar a la app)
-  { path: '', redirectTo: 'productos', pathMatch: 'full' },
-  
-  // Ruta de la página de productos
+
+  // Primera pantalla
+  { path: '', component: LoginComponent },
+
+  // Productos
   { path: 'productos', component: ProductosComponent },
 
   // Ruta de la página de inicio
   { path: 'dashboard', component: Dashboard },
-  
-  // Ruta comodín (por si escriben una URL que no existe)
-  { path: '**', redirectTo: 'productos' }
+
+  // Ruta comodín
+  { path: '**', redirectTo: '' }
+
 ];
