@@ -1,15 +1,15 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http'; 
 
 interface Producto {
   id: number;
   nombre: string;
-  sku: string;
+  categoria: string;
+  cantidad: number;
   precio: number;
-  stock: number;
-  estado: string;
-  imagen: string;
+  codigo: string;
 }
 
 @Component({
@@ -19,59 +19,64 @@ interface Producto {
   templateUrl: './productos.html',
   styleUrl: './productos.css'
 })
-export class ProductosComponent {
-  private readonly logoPredeterminado = 'assets/LogoBizly.png';
+export class ProductosComponent implements OnInit {
+  private readonly apiUrl = 'http://localhost:8080/api/inventario'; 
 
   @ViewChild('txtNombre') txtNombre!: ElementRef<HTMLInputElement>;
   @ViewChild('txtPrecio') txtPrecio!: ElementRef<HTMLInputElement>;
-  @ViewChild('txtStock') txtStock!: ElementRef<HTMLInputElement>;
-  @ViewChild('txtSku') txtSku!: ElementRef<HTMLInputElement>;
-  @ViewChild('selectEstado') selectEstado!: ElementRef<HTMLSelectElement>;
+  @ViewChild('txtCantidad') txtCantidad!: ElementRef<HTMLInputElement>;
+  @ViewChild('txtCodigo') txtCodigo!: ElementRef<HTMLInputElement>;
+  @ViewChild('selectCategoria') selectCategoria!: ElementRef<HTMLSelectElement>;
 
-  listaProductos: Producto[] = [
-    { id: 1, nombre: 'Producto Ejemplo 1', sku: 'SKU-001', precio: 10.00, stock: 10, estado: 'Activo', imagen: this.logoPredeterminado }
-  ];
+  listaProductos: Producto[] = [];
 
-  // INTERFAZ, BUSQUEDA Y FILTROS
   mostrarFormulario: boolean = false;
-  imagenPrevisualizada: string = this.logoPredeterminado;
   productoEnEdicion: Producto | null = null;
   terminoBusqueda: string = '';
-  estadoSeleccionado: string = 'Todos';
+  categoriaSeleccionada: string = 'Todos';
 
-  // CONTROL DE NOTIFICACIONES (MODAL)
   listaNotificaciones: string[] = []; 
-  mostrarModalNotificaciones: boolean = false; // Controla la ventana emergente de alertas
+  mostrarModalNotificaciones: boolean = false;
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.obtenerProductosDB();
+  }
+
+  obtenerProductosDB() {
+    this.http.get<Producto[]>(this.apiUrl).subscribe({
+      next: (data) => {
+        this.listaProductos = data;
+      },
+      error: (err) => console.error('Error cargando datos de la base de datos:', err)
+    });
+  }
 
   get productosFiltrados(): Producto[] {
     return this.listaProductos.filter(producto => {
       const termino = this.terminoBusqueda.toLowerCase().trim();
       const coincideTexto = !termino || 
-                            producto.nombre.toLowerCase().includes(termino) || 
-                            producto.sku.toLowerCase().includes(termino);
+                            (producto.nombre && producto.nombre.toLowerCase().includes(termino)) || 
+                            (producto.codigo && producto.codigo.toLowerCase().includes(termino));
 
-      const coincideEstado = this.estadoSeleccionado === 'Todos' || 
-                             producto.estado.toLowerCase() === this.estadoSeleccionado.toLowerCase();
+      const coincideCategoria = this.categoriaSeleccionada === 'Todos' || 
+                                (producto.categoria && producto.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase());
 
-      return coincideTexto && coincideEstado;
+      return coincideTexto && coincideCategoria;
     });
   }
 
-  // Registra alertas con la hora exacta
   agregarNotificacion(mensaje: string) {
     const ahora = new Date();
     const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     this.listaNotificaciones.unshift(`[${horaFormateada}] ${mensaje}`);
   }
 
-  // Abre y cierra el modal de notificaciones
   alternarModalNotificaciones() {
     this.mostrarModalNotificaciones = !this.mostrarModalNotificaciones;
   }
 
-  // Vacía el historial de alertas
   limpiarNotificaciones() {
     this.listaNotificaciones = [];
   }
@@ -80,74 +85,85 @@ export class ProductosComponent {
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.productoEnEdicion = null;
-      this.imagenPrevisualizada = this.logoPredeterminado;
     }
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagenPrevisualizada = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  guardarProducto(nombre: string, sku: string, precio: string, stock: string, estado: string) {
-    if (!nombre || !sku || !precio || !stock) {
-      alert('Por favor, rellene todos los campos del producto.');
+  guardarProducto(nombre: string, codigo: string, precio: string, cantidad: string, categoria: string) {
+    if (!nombre || !codigo || !precio || !cantidad) {
+      alert('Por favor, rellene todos los campos obligatorios del producto.');
       return;
     }
 
+    const datosProducto: any = {
+      nombre: nombre,
+      codigo: codigo,
+      precio: parseFloat(precio),
+      cantidad: parseInt(cantidad, 10),
+      categoria: categoria || 'General'
+    };
+
+    // 1. REVISAMOS PRIMERO SI ES EDICIÓN ANTES DE CERRAR EL MODAL
     if (this.productoEnEdicion) {
-      this.productoEnEdicion.nombre = nombre;
-      this.productoEnEdicion.sku = sku;
-      this.productoEnEdicion.precio = parseFloat(precio);
-      this.productoEnEdicion.stock = parseInt(stock, 10);
-      this.productoEnEdicion.estado = estado;
-      this.productoEnEdicion.imagen = this.imagenPrevisualizada;
+      datosProducto.id = this.productoEnEdicion.id;
       
-      this.agregarNotificacion(`Se actualizó el producto: "${nombre}" (SKU: ${sku}).`);
-      this.productoEnEdicion = null;
+      // Ahora sí, cerramos el formulario de forma segura
+      this.alternarFormulario();
+
+      // Petición de actualización (PUT)
+      this.http.put(`${this.apiUrl}/${datosProducto.id}`, datosProducto).subscribe({
+        next: () => {
+          // Mensaje exacto de actualización
+          this.agregarNotificacion(`Se actualizó: "${nombre}" (Código: ${codigo}).`);
+          this.obtenerProductosDB(); 
+        },
+        error: (err) => {
+          alert('Error al actualizar en la Base de Datos');
+          this.obtenerProductosDB();
+        }
+      });
+
     } else {
-      const nuevoProd: Producto = {
-        id: Date.now(),
-        nombre: nombre,
-        sku: sku,
-        precio: parseFloat(precio),
-        stock: parseInt(stock, 10),
-        estado: estado || 'Nuevo',
-        imagen: this.imagenPrevisualizada
-      };
-      this.listaProductos.push(nuevoProd);
+      // Si no hay producto en edición, es uno nuevo
+      this.alternarFormulario();
 
-      this.agregarNotificacion(`Se agregó un nuevo producto: "${nombre}".`);
+      // Petición de guardado nuevo (POST)
+      this.http.post(this.apiUrl, datosProducto).subscribe({
+        next: () => {
+          // Mensaje exacto de guardado
+          this.agregarNotificacion(`Se guardó: "${nombre}".`);
+          this.obtenerProductosDB(); 
+        },
+        error: (err) => {
+          alert('Error al guardar en la Base de Datos');
+          this.obtenerProductosDB();
+        }
+      });
     }
-
-    this.alternarFormulario();
   }
 
   editarProducto(producto: Producto) {
-    this.productoEnEdicion = producto;
     this.mostrarFormulario = true;
-    this.imagenPrevisualizada = producto.imagen;
+    this.productoEnEdicion = producto;
 
     setTimeout(() => {
-      if (this.txtNombre) this.txtNombre.nativeElement.value = producto.nombre;
-      if (this.txtPrecio) this.txtPrecio.nativeElement.value = producto.precio.toString();
-      if (this.txtStock) this.txtStock.nativeElement.value = producto.stock.toString();
-      if (this.txtSku) this.txtSku.nativeElement.value = producto.sku;
-      if (this.selectEstado) this.selectEstado.nativeElement.value = producto.estado;
+      if (this.txtNombre) this.txtNombre.nativeElement.value = producto.nombre || '';
+      if (this.txtPrecio) this.txtPrecio.nativeElement.value = producto.precio ? producto.precio.toString() : '';
+      if (this.txtCantidad) this.txtCantidad.nativeElement.value = producto.cantidad ? producto.cantidad.toString() : '';
+      if (this.txtCodigo) this.txtCodigo.nativeElement.value = producto.codigo || '';
+      if (this.selectCategoria) this.selectCategoria.nativeElement.value = producto.categoria || 'General';
     }, 50);
   }
 
   eliminarProducto(id: number) {
     const productoABorrar = this.listaProductos.find(p => p.id === id);
-    if (productoABorrar && confirm(`¿Estás seguro de que deseas eliminar el producto "${productoABorrar.nombre}"?`)) {
-      this.listaProductos = this.listaProductos.filter(p => p.id !== id);
-      this.agregarNotificacion(`Se eliminó el producto: "${productoABorrar.nombre}".`);
+    if (productoABorrar && confirm(`¿Estás seguro de que deseas eliminar permanentemente "${productoABorrar.nombre}"?`)) {
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+        next: () => {
+          this.agregarNotificacion(`Se eliminó: "${productoABorrar.nombre}".`);
+          this.obtenerProductosDB(); 
+        },
+        error: (err) => alert('Error al eliminar de la Base de Datos')
+      });
     }
   }
 }
