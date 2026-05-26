@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/nomina")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:8080")
 public class NominaController {
 
     @Autowired
@@ -20,19 +20,16 @@ public class NominaController {
         return nominaRepository.findAll();
     }
 
-    @PostMapping
-    public Nomina guardar(@RequestBody Nomina nomina) {
+    public Nomina agregar(@RequestBody Nomina data){
+        Nomina nuevaNomina = new Nomina();
 
-        // cálculo automático
-        double total = nomina.getSueldoBase() - nomina.getDeducciones();
-        nomina.setTotalPagar(total);
+        
+        nuevaNomina.setNombreEmpleado(data.getNombreEmpleado());
+        nuevaNomina.setCedula(data.getCedula());
+        nuevaNomina.setSueldoBase(data.getSueldoBase());
+        
 
-        return nominaRepository.save(nomina);
-    }
-
-    @GetMapping("/{id}")
-    public Nomina obtener(@PathVariable Long id) {
-        return nominaRepository.findById(id).orElse(null);
+        return nominaRepository.save(nuevaNomina);
     }
 
     @PutMapping("/{id}")
@@ -41,14 +38,11 @@ public class NominaController {
         Nomina n = nominaRepository.findById(id).orElse(null);
 
         if (n != null) {
-            n.setPeriodo(data.getPeriodo());
+            
             n.setNombreEmpleado(data.getNombreEmpleado());
-            n.setCargoEmpleado(data.getCargoEmpleado());
+            n.setCedula(data.getCedula());
             n.setSueldoBase(data.getSueldoBase());
-            n.setDeducciones(data.getDeducciones());
-
-            double total = data.getSueldoBase() - data.getDeducciones();
-            n.setTotalPagar(total);
+            n.setSueldoBase(data.getSueldoBase());
 
             return nominaRepository.save(n);
         }

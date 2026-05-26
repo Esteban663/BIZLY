@@ -1,23 +1,118 @@
+<div *ngIf="mostrarFormulario" class="modal-overlay">
+  <div class="modal-content">
+    
+    <div class="modal-header">
+      <h2>{{ productoEnEdicion ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+      <p>{{ productoEnEdicion ? 'Modifica los valores del producto seleccionado' : 'Ingresa los datos para registrarlo en Bizly' }}</p>
+    </div>
+    
+    <div class="modal-body">
+      <div class="image-upload-zone">
+        <img [src]="imagenPrevisualizada" alt="Vista previa">
+        <label class="btn-upload-photo">
+          📸 BUSCAR FOTO
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+        </label>
+      </div>
+
+      <div>
+        <label class="modal-label">NOMBRE DEL PRODUCTO *</label>
+        <input #txtNombre type="text" placeholder="Ej. Camisa Oxford" class="modal-input">
+      </div>
+
+      <div class="modal-grid-2">
+        <div>
+          <label class="modal-label">PRECIO VENTA ($) *</label>
+          <input #txtPrecio type="number" step="0.01" placeholder="0.00" class="modal-input">
+        </div>
+        <div>
+          <label class="modal-label">STOCK INICIAL *</label>
+          <input #txtStock type="number" placeholder="0" class="modal-input">
+        </div>
+      </div>
+
+      <div>
+        <label class="modal-label">CÓDIGO SKU *</label>
+        <input #txtSku type="text" placeholder="Ej. BIZ-001" class="modal-input">
+      </div>
+
+      <div>
+        <label class="modal-label">ESTADO OPERATIVO</label>
+        <select #selectEstado class="modal-input" style="cursor: pointer;">
+          <option value="Activo">🟢 Activo</option>
+          <option value="Inactivo">🔴 Inactivo</option>
+          <option value="Nuevo">✨ Nuevo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="alternarFormulario()" class="btn-modal-cancel">CANCELAR</button>
+      <button (click)="guardarProducto(txtNombre.value, txtSku.value, txtPrecio.value, txtStock.value, selectEstado.value)" class="btn-modal-save">GUARDAR</button>
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="mostrarModalNotificaciones" class="modal-overlay">
+  <div class="modal-content">
+    
+    <div class="modal-header">
+      <h2>Notificaciones de Actividad</h2>
+      <p>Historial de cambios recientes en tu inventario</p>
+    </div>
+    
+    <div class="modal-body-alerts">
+      <p class="empty-alerts" *ngIf="listaNotificaciones.length === 0">
+        📭 No hay registros de actividades recientes.
+      </p>
+      
+      <ul class="alerts-modal-list" *ngIf="listaNotificaciones.length > 0">
+        <li *ngFor="let alerta of listaNotificaciones">
+          {{ alerta }}
+        </li>
+      </ul>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="limpiarNotificaciones()" class="btn-modal-clear" *ngIf="listaNotificaciones.length > 0">
+        🗑️ LIMPIAR HISTORIAL
+      </button>
+      <div *ngIf="listaNotificaciones.length === 0"></div> <button (click)="alternarModalNotificaciones()" class="btn-modal-save">
+        CERRAR
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <div class="dashboard-container">
   <header class="header-bar">
     <h2>Producto</h2>
+    
     <div class="user-profile">
-      <span class="notification-icon">🔔<span class="badge">1</span></span>
-      <span class="user-role">ADMIN</span>
-      <div class="avatar"></div>
+      <span class="notification-icon" (click)="alternarModalNotificaciones()">
+        🔔
+        <span class="badge" *ngIf="listaNotificaciones.length > 0">
+          {{ listaNotificaciones.length }}
+        </span>
+      </span>
     </div>
   </header>
 
   <div class="toolbar">
     <div class="search-filters">
-      <input type="text" placeholder="Buscar..." class="filter-input" />
-      <select class="filter-select">
-        <option>Activo</option>
-        <option>Nuevo</option>
-        <option>Agotado</option>
+      <input type="text" placeholder="Buscar por nombre o SKU..." class="filter-input" [(ngModel)]="terminoBusqueda" />
+             
+      <select class="filter-select" [(ngModel)]="estadoSeleccionado">
+        <option value="Todos">📦 Mostrar Todos</option>
+        <option value="Activo">Activo</option>
+        <option value="Nuevo">Nuevo</option>
+        <option value="Inactivo">Inactivo</option>
+        <option value="Agotado">Agotado</option>
       </select>
     </div>
-    <button class="btn-primary" (click)="crearProducto()">AÑADIR PRODUCTO</button>
+    <button class="btn-primary" (click)="alternarFormulario()">AÑADIR PRODUCTO</button>
   </div>
 
   <div class="table-container">
@@ -34,10 +129,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let producto of listaProductos">
+        <tr *ngFor="let producto of productosFiltrados">
           <td><input type="checkbox" /></td>
           <td class="name-column">
-                <img [src]="producto.imagen" alt="Logo" class="product-logo" />            <span>{{ producto.nombre }}</span>
+            <img [src]="producto.imagen" alt="Logo" class="product-logo" />
+            <span>{{ producto.nombre }}</span>
           </td>
           <td>{{ producto.sku }}</td>
           <td>{{ producto.precio | currency }}</td>
@@ -52,15 +148,13 @@
             <button class="btn-action delete" (click)="eliminarProducto(producto.id)">🗑️</button>
           </td>
         </tr>
+        <tr *ngIf="productosFiltrados.length === 0">
+          <td colspan="7" style="text-align: center; color: #94a3b8; padding: 30px;">
+            🔍 No hay coincidencias para los criterios seleccionados.
+          </td>
+        </tr>
       </tbody>
     </table>
 
-    <footer class="table-footer">
-      <span>Filas por página: 10 🔽</span>
-      <div class="pagination-arrows">
-        <button class="arrow-btn">◀</button>
-        <button class="arrow-btn">▶</button>
-      </div>
-    </footer>
   </div>
 </div>

@@ -1,4 +1,5 @@
 import { ProductosComponent } from './productos/app/productos/productos';
+import { Dashboard } from './dashboard/dashboard';
 import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/components/login/login.component';
 export const routes: Routes = [
@@ -8,6 +9,9 @@ export const routes: Routes = [
 
   // Productos
   { path: 'productos', component: ProductosComponent },
+
+  // Ruta de la página de inicio
+  { path: 'dashboard', component: Dashboard },
 
   // Ruta comodín
   { path: '**', redirectTo: '' }
