@@ -1,0 +1,49 @@
+<div class="auth-wrapper">
+
+  <div class="auth-brand">
+    <div class="auth-brand-logo">⚡ BIZLY</div>
+    <p class="auth-brand-tagline">Gestiona tu proyecto con claridad y velocidad.</p>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-card">
+      <h2>Bienvenido</h2>
+      <p class="auth-subtitle">Inicia sesión para continuar</p>
+
+      <div *ngIf="errorMsg" class="alert-error">{{ errorMsg }}</div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" 
+                 formControlName="email"
+                 name="email"
+                 autocomplete="username"
+                 [class.invalid]="email.invalid && email.touched"
+                 placeholder="usuario@correo.com" />
+          <small *ngIf="email.hasError('required') && email.touched">El correo es obligatorio</small>
+          <small *ngIf="email.hasError('email') && email.touched">Formato inválido</small>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" 
+                 formControlName="password"
+                 name="password"
+                 autocomplete="current-password"
+                 [class.invalid]="password.invalid && password.touched"
+                 placeholder="••••••••" />
+          <small *ngIf="password.hasError('minlength') && password.touched">Mínimo 6 caracteres</small>
+        </div>
+
+        <button type="submit" class="btn-primary" [class.loading]="loading" [disabled]="loading">
+          {{ loading ? '' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <hr class="auth-divider">
+      <p class="auth-link">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>
+    </div>
+  </div>
+
+</div>
