@@ -1,88 +1,286 @@
-:host {
-  display: block;
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  background-color: #fdfbf7; /* Fondo ligeramente beige como el de tu captura */
-  padding: 20px;
+/* ======================================================================= */
+/* 1. ESTILOS DEL MODAL EMERGENTE (POPUP - TOTALMENTE ENCAPSULADOS)        */
+/* ======================================================================= */
+
+/* Capa oscura translúcida que cubre la pantalla real */
+:host ::ng-deep .modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(5px) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 999999 !important;
+}
+
+/* Tarjeta blanca del formulario */
+:host ::ng-deep .modal-overlay .modal-content {
+  background: #ffffff !important;
+  padding: 30px !important;
+  border-radius: 16px !important;
+  width: 90% !important;
+  max-width: 460px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2) !important;
+  box-sizing: border-box !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.modal-overlay .modal-header {
+  text-align: center !important;
+  margin-bottom: 20px !important;
+}
+
+.modal-overlay .modal-header h2 {
+  font-size: 22px !important;
+  font-weight: bold !important;
+  color: #013220 !important;
+  margin: 0 !important;
+}
+
+.modal-overlay .modal-header p {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.modal-overlay .modal-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  text-align: left !important;
+}
+
+.modal-overlay .image-upload-zone {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background-color: #E6F4EA !important;
+  padding: 15px !important;
+  border-radius: 12px !important;
+  border: 2px dashed #10B981 !important;
+}
+
+.modal-overlay .image-upload-zone img {
+  width: 85px !important;
+  height: 85px !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
+}
+
+.modal-overlay .btn-upload-photo {
+  cursor: pointer !important;
+  background: #10B981 !important;
+  color: white !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  text-transform: uppercase !important;
+}
+
+.modal-overlay .modal-label {
+  font-size: 11px !important;
+  font-weight: bold !important;
+  color: #013220 !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+
+.modal-overlay .modal-input {
+  width: 100% !important;
+  padding: 10px 14px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+  background-color: white !important;
+  color: #333333 !important;
+}
+
+.modal-overlay .modal-input:focus {
+  border-color: #10B981 !important;
+}
+
+.modal-overlay .modal-grid-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+.modal-overlay .modal-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 25px !important;
+}
+
+.modal-overlay .btn-modal-cancel {
+  background: none !important;
+  border: none !important;
+  color: #9ca3af !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+}
+
+.modal-overlay .btn-modal-save {
+  background: #10B981 !important;
+  color: white !important;
+  border: none !important;
+  font-weight: bold !important;
+  padding: 10px 24px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+}
+
+
+/* ======================================================================= */
+/* 2. TU ESTILO ORIGINAL RECUPERADO (DASHBOARD, TABLA E INVENTARIO)        */
+/* ======================================================================= */
+
+/* Contenedor Base */
+.dashboard-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
 }
 
-/* Encabezado */
+/* Header Superior */
 .header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .header-bar h2 {
-  color: #333;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
-  font-size: 24px;
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 16px;
 }
 
-.user-role {
+.notification-icon {
+  font-size: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.notification-icon .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
   font-weight: bold;
-  font-size: 14px;
-  color: #333;
-}
-
-.avatar {
-  width: 35px;
-  height: 35px;
-  background-color: #ccc;
+  padding: 2px 6px;
   border-radius: 50%;
 }
 
-/* Barra de herramientas y filtros */
+.user-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #cbd5e1;
+  border-radius: 50%;
+}
+
+/* Toolbar de Filtros y Botón Añadir */
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  gap: 16px;
 }
 
 .search-filters {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  flex: 1;
+  max-width: 500px;
 }
 
-.filter-input, .filter-select {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: white;
+.filter-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   outline: none;
+  font-size: 14px;
+  background-color: #ffffff;
+  transition: border-color 0.2s;
 }
 
-/* Botón de acción con el Verde Esmeralda Oficial */
+.filter-input:focus {
+  border-color: #10B981;
+}
+
+.filter-select {
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+
+/* Botón Añadir Producto Principal */
 .btn-primary {
   background-color: #10B981;
-  color: #FFFFFF;
+  color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: bold;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
 }
 
 .btn-primary:hover {
-  background-color: #0d9668;
+  background-color: #059669;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
 /* Contenedor de la Tabla */
 .table-container {
-  background-color: #FFFFFF;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   overflow: hidden;
+  border: 1px solid #e2e8f0;
 }
 
 .products-table {
@@ -92,50 +290,56 @@
 }
 
 .products-table th {
-  background-color: #f8f9fa;
-  color: #666;
+  background-color: #f8fafc;
+  color: #64748b;
   font-size: 12px;
-  font-weight: bold;
-  padding: 12px 16px;
-  border-bottom: 2px solid #eaeaea;
+  font-weight: 700;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  letter-spacing: 0.5px;
 }
 
 .products-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #eaeaea;
-  color: #444;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
   font-size: 14px;
   vertical-align: middle;
 }
 
-/* Columna de Nombre y Logo del producto */
+.products-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Columna de Nombre e Imagen */
 .name-column {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-weight: 600;
 }
 
 .product-logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
-  border-radius: 4px;
-  background-color: #eaeaea; /* Gris por si no carga la imagen */
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
-/* Badges de Estado adaptables */
+/* Badges de Estado Operativo */
 .status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
   display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
 }
 
-/* Variaciones de estado simulando tu captura */
 .status-badge.activo {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: #dcfce7;
+  color: #15803d;
 }
 
 .status-badge.nuevo {
@@ -143,12 +347,12 @@
   color: #0369a1;
 }
 
-.status-badge.agotado {
+.status-badge.agotado, .status-badge.inactivo {
   background-color: #fee2e2;
-  color: #991b1b;
+  color: #b91c1c;
 }
 
-/* Botones de acciones del CRUD */
+/* Columna de Acciones (Editar/Eliminar) */
 .actions-column {
   display: flex;
   gap: 8px;
@@ -157,38 +361,103 @@
 .btn-action {
   background: none;
   border: none;
-  cursor: pointer;
   font-size: 16px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 0.2s;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
 }
 
 .btn-action:hover {
-  background-color: #f0f0f0;
+  background-color: #f1f5f9;
 }
 
-/* Pie de tabla / Paginación */
+/* Footer y Paginación */
 .table-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  padding: 12px 16px;
-  background-color: #f8f9fa;
-  font-size: 13px;
-  color: #666;
+  padding: 16px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .pagination-arrows {
   display: flex;
-  gap: 5px;
+  gap: 8px;
 }
 
 .arrow-btn {
-  background: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 2px 8px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.arrow-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+/* ======================================================================= */
+/* 4. AJUSTES EXCLUSIVOS PARA EL MODAL DE NOTIFICACIONES                    */
+/* ======================================================================= */
+
+/* Contenedor del historial con scroll interno por si hay demasiadas alertas */
+.modal-body-alerts {
+  max-height: 260px !important;
+  overflow-y: auto !important;
+  padding-right: 5px;
+}
+
+.empty-alerts {
+  text-align: center;
+  color: #64748b;
+  padding: 20px 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Lista interna del modal */
+.alerts-modal-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.alerts-modal-list li {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 13px !important;
+  color: #334155 !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+  border-left: 4px solid #10B981; /* Borde verde elegante indicador de actividad */
+  margin-bottom: 6px;
+  background-color: #f8fafc;
+  border-radius: 0 8px 8px 0;
+}
+
+.alerts-modal-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Botón de limpiar historial */
+.btn-modal-clear {
+  background: none !important;
+  border: none !important;
+  color: #ef4444 !important;
+  font-weight: bold !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  letter-spacing: 0.5px;
+}
+
+.btn-modal-clear:hover {
+  text-decoration: underline !important;
 }
