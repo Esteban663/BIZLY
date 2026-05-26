@@ -1,0 +1,66 @@
+<div class="dashboard-container">
+  <header class="header-bar">
+    <h2>Producto</h2>
+    <div class="user-profile">
+      <span class="notification-icon">🔔<span class="badge">1</span></span>
+      <span class="user-role">ADMIN</span>
+      <div class="avatar"></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-filters">
+      <input type="text" placeholder="Buscar..." class="filter-input" />
+      <select class="filter-select">
+        <option>Activo</option>
+        <option>Nuevo</option>
+        <option>Agotado</option>
+      </select>
+    </div>
+    <button class="btn-primary" (click)="crearProducto()">AÑADIR PRODUCTO</button>
+  </div>
+
+  <div class="table-container">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" /></th>
+          <th>NOMBRE</th>
+          <th>CODIGO</th>
+          <th>PRECIO/VENTA</th>
+          <th>STOCK</th>
+          <th>ESTADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let producto of listaProductos">
+          <td><input type="checkbox" /></td>
+          <td class="name-column">
+                <img [src]="producto.imagen" alt="Logo" class="product-logo" />            <span>{{ producto.nombre }}</span>
+          </td>
+          <td>{{ producto.sku }}</td>
+          <td>{{ producto.precio | currency }}</td>
+          <td>{{ producto.stock }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="producto.estado.toLowerCase()">
+              {{ producto.estado }}
+            </span>
+          </td>
+          <td class="actions-column">
+            <button class="btn-action edit" (click)="editarProducto(producto)">✏️</button>
+            <button class="btn-action delete" (click)="eliminarProducto(producto.id)">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer class="table-footer">
+      <span>Filas por página: 10 🔽</span>
+      <div class="pagination-arrows">
+        <button class="arrow-btn">◀</button>
+        <button class="arrow-btn">▶</button>
+      </div>
+    </footer>
+  </div>
+</div>
