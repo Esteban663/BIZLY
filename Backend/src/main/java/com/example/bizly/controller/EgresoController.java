@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/egresos")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:8080")
 public class EgresoController {
 
     @Autowired
