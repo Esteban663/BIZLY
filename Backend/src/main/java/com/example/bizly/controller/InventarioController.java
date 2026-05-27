@@ -17,8 +17,7 @@ import com.example.bizly.entity.Inventario;
 import com.example.bizly.repository.InventarioRepository;
 
 @RestController
-@RequestMapping("/api/inventario")
-@CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("/bizly/inventario")
 public class InventarioController {
 
     @Autowired
