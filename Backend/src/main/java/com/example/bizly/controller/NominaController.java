@@ -49,6 +49,17 @@ public class NominaController {
         return null;
     }
 
+    @PutMapping("/{id}")
+    public String buscar(@PathVariable Long id){
+        Nomina n = nominaRepository.findById(id).orElse(null);
+
+        String nombre = n.getNombreEmpleado();
+        String cedula = n.getCedula();
+        String sueldoBase = n.getSueldoBase().toString();
+
+        return id + nombre + cedula + sueldoBase;
+    }
+
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         nominaRepository.deleteById(id);
