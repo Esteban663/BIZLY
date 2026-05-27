@@ -44,7 +44,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h2>Notificaciones de Actividad</h2>
-      <p>Historial de cambios recientes en el sistema</p> 
+      <p>Historial de cambios recientes en el sistema</p>
     </div>
     <div class="modal-body-alerts">
       <p class="empty-alerts" *ngIf="listaNotificaciones.length === 0">📭 No hay registros de actividades recientes.</p>
@@ -104,11 +104,9 @@
           <td class="name-column"><strong>{{ producto.nombre }}</strong></td>
           <td class="code-column">{{ producto.codigo }}</td>
           <td class="price-column">{{ producto.precio | currency }}</td>
-          
           <td class="stock-column" [ngClass]="{'stock-critico': producto.cantidad < 2}">
             {{ producto.cantidad }} u.
           </td>
-          
           <td><span class="status-badge general">{{ producto.categoria }}</span></td>
           
           <td>
