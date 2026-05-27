@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DashboardService } from '../services/dashboard.service';
 import { Movimiento, MetricCard } from '../models/movimiento.model';
 
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -12,6 +13,7 @@ import { Movimiento, MetricCard } from '../models/movimiento.model';
   templateUrl: '../dashboard.html',
   styleUrl: '../dashboard.css'
 })
+//Clase
 export class Dashboard implements OnInit {
   // Inyectamos nuestro nuevo servicio especializado
   private dashboardService = inject(DashboardService);
