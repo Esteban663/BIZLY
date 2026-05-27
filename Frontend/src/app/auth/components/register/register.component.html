@@ -1,5 +1,4 @@
 <div class="auth-wrapper">
-
   <div class="auth-brand">
     <div class="auth-brand-logo">⚡ BIZLY</div>
     <p class="auth-brand-tagline">Crea tu cuenta y empieza a colaborar hoy.</p>
@@ -13,50 +12,55 @@
       <div *ngIf="errorMsg" class="alert-error">{{ errorMsg }}</div>
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
         <div class="form-group">
           <label>Nombre completo</label>
           <input type="text" formControlName="nombre"
                  [class.invalid]="nombre.invalid && nombre.touched"
                  placeholder="Tu nombre" />
-          <small *ngIf="nombre.invalid && nombre.touched">Nombre requerido (mín. 2 caracteres)</small>
+          <small *ngIf="nombre.invalid && nombre.touched">
+            Nombre requerido (mín. 2 caracteres)
+          </small>
         </div>
 
         <div class="form-group">
           <label>Correo electrónico</label>
-          <input type="email" formControlName="email"
-                 [class.invalid]="email.invalid && email.touched"
+          <input type="email" formControlName="correo"
+                 [class.invalid]="correo.invalid && correo.touched"
                  placeholder="usuario@correo.com" />
-          <small *ngIf="email.invalid && email.touched">Correo inválido</small>
+          <small *ngIf="correo.hasError('required') && correo.touched">El correo es obligatorio</small>
+          <small *ngIf="correo.hasError('email') && correo.touched">Formato inválido</small>
         </div>
 
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" formControlName="password"
-                 [class.invalid]="password.invalid && password.touched"
-                 placeholder="Mín 6 chars, 1 mayúscula, 1 número" />
-          <small *ngIf="password.hasError('pattern') && password.touched">
-            Debe tener al menos 1 mayúscula y 1 número
+          <input type="password" formControlName="contrasena"
+                 [class.invalid]="contrasena.invalid && contrasena.touched"
+                 placeholder="Mínimo 6 caracteres" />
+          <small *ngIf="contrasena.hasError('minlength') && contrasena.touched">
+            Mínimo 6 caracteres
           </small>
         </div>
 
         <div class="form-group">
           <label>Confirmar contraseña</label>
-          <input type="password" formControlName="confirmPassword"
-                 [class.invalid]="registerForm.hasError('mismatch') && confirmPassword.touched"
+          <input type="password" formControlName="confirmar"
+                 [class.invalid]="registerForm.hasError('mismatch') && confirmar.touched"
                  placeholder="Repite la contraseña" />
-          <small *ngIf="registerForm.hasError('mismatch') && confirmPassword.touched">
+          <small *ngIf="registerForm.hasError('mismatch') && confirmar.touched">
             Las contraseñas no coinciden
           </small>
         </div>
 
-        <button type="submit" class="btn-primary" [class.loading]="loading" [disabled]="loading">
+        <button type="submit" class="btn-primary"
+                [class.loading]="loading" [disabled]="loading">
           {{ loading ? '' : 'Registrarse' }}
         </button>
+
       </form>
 
       <hr class="auth-divider">
       <p class="auth-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
     </div>
   </div>
-
 </div>

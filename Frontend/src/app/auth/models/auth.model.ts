@@ -1,18 +1,18 @@
 export interface LoginRequest {
-  email: string;
-  password: string;
+  correo: string;
+  contrasena: string;
 }
 
 export interface RegisterRequest {
   nombre: string;
-  email: string;
-  password: string;
+  correo: string;
+  contrasena: string;
+  rol: string;
 }
 
 export interface AuthResponse {
-  token: string;
-  tipo: string;
-  email: string;
+  id: number;
   nombre: string;
-  roles: string[];
+  correo: string;
+  rol: string;
 }

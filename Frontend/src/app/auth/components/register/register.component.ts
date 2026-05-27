@@ -5,8 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 function passwordsMatch(control: AbstractControl) {
-  const pass    = control.get('password')?.value;
-  const confirm = control.get('confirmPassword')?.value;
+  const pass    = control.get('contrasena')?.value;
+  const confirm = control.get('confirmar')?.value;
   return pass === confirm ? null : { mismatch: true };
 }
 
@@ -23,25 +23,24 @@ export class RegisterComponent implements OnInit {
   errorMsg = '';
 
   constructor(
-    private fb:          FormBuilder,
+    private fb: FormBuilder,
     private authService: AuthService,
-    private router:      Router
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
-      nombre:          ['', [Validators.required, Validators.minLength(2)]],
-      email:           ['', [Validators.required, Validators.email]],
-      password:        ['', [Validators.required, Validators.minLength(6),
-                             Validators.pattern(/(?=.*[A-Z])(?=.*\d)/)]],
-      confirmPassword: ['', Validators.required]
+      nombre:     ['', [Validators.required, Validators.minLength(2)]],
+      correo:     ['', [Validators.required, Validators.email]],
+      contrasena: ['', [Validators.required, Validators.minLength(6)]],
+      confirmar:  ['', Validators.required]
     }, { validators: passwordsMatch });
   }
 
-  get nombre()          { return this.registerForm.get('nombre')!; }
-  get email()           { return this.registerForm.get('email')!; }
-  get password()        { return this.registerForm.get('password')!; }
-  get confirmPassword() { return this.registerForm.get('confirmPassword')!; }
+  get nombre()     { return this.registerForm.get('nombre')!; }
+  get correo()     { return this.registerForm.get('correo')!; }
+  get contrasena() { return this.registerForm.get('contrasena')!; }
+  get confirmar()  { return this.registerForm.get('confirmar')!; }
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
@@ -51,11 +50,11 @@ export class RegisterComponent implements OnInit {
     this.loading  = true;
     this.errorMsg = '';
 
-    const { nombre, email, password } = this.registerForm.value;
-    this.authService.register({ nombre, email, password }).subscribe({
+    const { nombre, correo, contrasena } = this.registerForm.value;
+    this.authService.register({ nombre, correo, contrasena, rol: 'USER' }).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
-        this.errorMsg = err.error?.mensaje ?? 'Error al registrar usuario';
+        this.errorMsg = err.error?.error ?? 'Error al registrar usuario';
         this.loading  = false;
       }
     });

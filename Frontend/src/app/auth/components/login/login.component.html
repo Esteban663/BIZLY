@@ -1,8 +1,9 @@
+<!-- ═══════════════ PÁGINA LOGIN ═══════════════ -->
 <div class="auth-wrapper">
 
   <div class="auth-brand">
     <div class="auth-brand-logo">⚡ BIZLY</div>
-    <p class="auth-brand-tagline">Gestiona tu proyecto con claridad y velocidad.</p>
+    <p class="auth-brand-tagline">Gestiona tu negocio con claridad y velocidad.</p>
   </div>
 
   <div class="auth-panel">
@@ -10,40 +11,98 @@
       <h2>Bienvenido</h2>
       <p class="auth-subtitle">Inicia sesión para continuar</p>
 
-      <div *ngIf="errorMsg" class="alert-error">{{ errorMsg }}</div>
+      <div *ngIf="loginError" class="alert-error">{{ loginError }}</div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+
         <div class="form-group">
           <label>Correo electrónico</label>
-          <input type="email" 
-                 formControlName="email"
-                 name="email"
-                 autocomplete="username"
-                 [class.invalid]="email.invalid && email.touched"
+          <input type="email" formControlName="correo"
+                 [class.invalid]="lCorreo.invalid && lCorreo.touched"
                  placeholder="usuario@correo.com" />
-          <small *ngIf="email.hasError('required') && email.touched">El correo es obligatorio</small>
-          <small *ngIf="email.hasError('email') && email.touched">Formato inválido</small>
+          <small *ngIf="lCorreo.hasError('required') && lCorreo.touched">El correo es obligatorio</small>
+          <small *ngIf="lCorreo.hasError('email') && lCorreo.touched">Formato inválido</small>
         </div>
 
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" 
-                 formControlName="password"
-                 name="password"
-                 autocomplete="current-password"
-                 [class.invalid]="password.invalid && password.touched"
+          <input type="password" formControlName="contrasena"
+                 [class.invalid]="lContrasena.invalid && lContrasena.touched"
                  placeholder="••••••••" />
-          <small *ngIf="password.hasError('minlength') && password.touched">Mínimo 6 caracteres</small>
+          <small *ngIf="lContrasena.hasError('minlength') && lContrasena.touched">Mínimo 6 caracteres</small>
         </div>
 
-        <button type="submit" class="btn-primary" [class.loading]="loading" [disabled]="loading">
-          {{ loading ? '' : 'Ingresar' }}
+        <button type="submit" class="btn-primary"
+                [class.loading]="loginLoading" [disabled]="loginLoading">
+          {{ loginLoading ? '' : 'Ingresar' }}
         </button>
+
       </form>
 
       <hr class="auth-divider">
-      <p class="auth-link">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>
+      <p class="auth-link">
+        ¿No tienes cuenta?
+        <a (click)="abrirModal()" style="cursor:pointer">Regístrate</a>
+      </p>
     </div>
   </div>
 
+</div>
+
+<!-- ═══════════════ MODAL REGISTRO ═══════════════ -->
+<div class="modal-backdrop" *ngIf="showModal" (click)="cerrarModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3>Crear cuenta</h3>
+      <button class="modal-close" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <div *ngIf="registerError"   class="alert-error">{{ registerError }}</div>
+    <div *ngIf="registerSuccess" class="alert-success">{{ registerSuccess }}</div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" formControlName="nombre"
+               [class.invalid]="rNombre.invalid && rNombre.touched"
+               placeholder="Tu nombre" />
+        <small *ngIf="rNombre.invalid && rNombre.touched">Nombre requerido (mín. 2 caracteres)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" formControlName="correo"
+               [class.invalid]="rCorreo.invalid && rCorreo.touched"
+               placeholder="usuario@correo.com" />
+        <small *ngIf="rCorreo.hasError('required') && rCorreo.touched">El correo es obligatorio</small>
+        <small *ngIf="rCorreo.hasError('email') && rCorreo.touched">Formato inválido</small>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" formControlName="contrasena"
+               [class.invalid]="rContrasena.invalid && rContrasena.touched"
+               placeholder="Mínimo 6 caracteres" />
+        <small *ngIf="rContrasena.hasError('minlength') && rContrasena.touched">Mínimo 6 caracteres</small>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar contraseña</label>
+        <input type="password" formControlName="confirmar"
+               [class.invalid]="registerForm.hasError('mismatch') && rConfirmar.touched"
+               placeholder="Repite la contraseña" />
+        <small *ngIf="registerForm.hasError('mismatch') && rConfirmar.touched">
+          Las contraseñas no coinciden
+        </small>
+      </div>
+
+      <button type="submit" class="btn-primary"
+              [class.loading]="registerLoading" [disabled]="registerLoading">
+        {{ registerLoading ? '' : 'Crear cuenta' }}
+      </button>
+
+    </form>
+  </div>
 </div>
