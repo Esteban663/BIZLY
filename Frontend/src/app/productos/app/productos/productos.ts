@@ -20,7 +20,7 @@ interface Producto {
   styleUrl: './productos.css'
 })
 export class ProductosComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:8080/api/inventario'; 
+  private readonly apiUrl = 'http://localhost:8080/bizly/inventario'; 
 
   @ViewChild('txtNombre') txtNombre!: ElementRef<HTMLInputElement>;
   @ViewChild('txtPrecio') txtPrecio!: ElementRef<HTMLInputElement>;
