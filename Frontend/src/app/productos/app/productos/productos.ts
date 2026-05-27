@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; 
+import { HttpClient } from '@angular/common/http';
 
 interface Producto {
   id: number;
@@ -15,12 +15,12 @@ interface Producto {
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './productos.html',
   styleUrl: './productos.css'
 })
 export class ProductosComponent implements OnInit {
-  private readonly apiUrl = 'http://localhost:8080/bizly/inventario'; 
+  private readonly apiUrl = 'http://localhost:8080/bizly/inventario';
 
   formNombre: string = '';
   formPrecio: number | null = null;
@@ -35,18 +35,17 @@ export class ProductosComponent implements OnInit {
   terminoBusqueda: string = '';
   categoriaSeleccionada: string = 'Todos';
 
-  listaNotificaciones: string[] = []; 
+  listaNotificaciones: string[] = [];
   mostrarModalNotificaciones: boolean = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Carga los datos automáticamente apenas abre la página
     this.refrescarTodo();
   }
 
   /**
-   * Resetea filtros de búsqueda y jala los datos más recientes del servidor
+   * Resetea filtros de búsqueda y trae los datos más recientes del servidor
    */
   refrescarTodo(): void {
     this.terminoBusqueda = '';
@@ -61,8 +60,9 @@ export class ProductosComponent implements OnInit {
   obtenerProductosDB(): void {
     this.http.get<Producto[]>(this.apiUrl).subscribe({
       next: (data) => {
-        this.listaProductos = data;
-        this.verificarStockCritico(); // Valida las alertas de stock bajo
+        this.listaProductos = [...data];
+        this.verificarStockCritico();
+        this.cdr.detectChanges(); // Fuerza la detección de cambios en Angular
       },
       error: (err) => console.error('Error cargando datos del servidor:', err)
     });
@@ -74,7 +74,9 @@ export class ProductosComponent implements OnInit {
   verificarStockCritico(): void {
     this.listaProductos.forEach(producto => {
       if (producto.cantidad < 2) {
-        const yaExisteAlerta = this.listaNotificaciones.some(n => n.includes(`⚠️ STOCK BAJO: "${producto.nombre}"`));
+        const yaExisteAlerta = this.listaNotificaciones.some(n =>
+          n.includes(`⚠️ STOCK BAJO: "${producto.nombre}"`)
+        );
         if (!yaExisteAlerta) {
           this.agregarNotificacion(`⚠️ STOCK BAJO: "${producto.nombre}" (Solo quedan ${producto.cantidad} u.).`);
         }
@@ -88,13 +90,11 @@ export class ProductosComponent implements OnInit {
   get productosFiltrados(): Producto[] {
     return this.listaProductos.filter(producto => {
       const termino = this.terminoBusqueda.toLowerCase().trim();
-      const coincideTexto = !termino || 
-                            (producto.nombre && producto.nombre.toLowerCase().includes(termino)) || 
-                            (producto.codigo && producto.codigo.toLowerCase().includes(termino));
-
-      const coincideCategoria = this.categoriaSeleccionada === 'Todos' || 
-                                (producto.categoria && producto.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase());
-
+      const coincideTexto = !termino ||
+        (producto.nombre && producto.nombre.toLowerCase().includes(termino)) ||
+        (producto.codigo && producto.codigo.toLowerCase().includes(termino));
+      const coincideCategoria = this.categoriaSeleccionada === 'Todos' ||
+        (producto.categoria && producto.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase());
       return coincideTexto && coincideCategoria;
     });
   }
@@ -102,7 +102,7 @@ export class ProductosComponent implements OnInit {
   /**
    * Agrega un evento con hora actual al historial de notificaciones
    */
-  agregarNotificacion(mensaje: string) {
+  agregarNotificacion(mensaje: string): void {
     const ahora = new Date();
     const horaTexto = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     this.listaNotificaciones.unshift(`[${horaTexto}] ${mensaje}`);
@@ -133,7 +133,7 @@ export class ProductosComponent implements OnInit {
   }
 
   /**
-   * Guarda o actualiza el producto y ejecuta la recarga automática en caliente
+   * Guarda o actualiza el producto y ejecuta la recarga automática
    */
   guardarProducto(): void {
     if (!this.formNombre || !this.formCodigo || this.formPrecio === null || this.formCantidad === null) {
@@ -159,9 +159,8 @@ export class ProductosComponent implements OnInit {
 
       this.http.put(`${this.apiUrl}/${datosProducto.id}`, datosProducto).subscribe({
         next: () => {
-          // ALERTA CORREGIDA: Sin mencionar Postgres
           this.agregarNotificacion(`Se actualizó el producto: "${nombreGuardado}" (Código: ${codigoGuardado}).`);
-          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
+          this.obtenerProductosDB();
         },
         error: (err) => {
           alert('Error al actualizar en la Base de Datos');
@@ -175,9 +174,8 @@ export class ProductosComponent implements OnInit {
 
       this.http.post(this.apiUrl, datosProducto).subscribe({
         next: () => {
-          // ALERTA CORREGIDA: Sin mencionar Postgres
           this.agregarNotificacion(`Se guardó el producto: "${nombreGuardado}".`);
-          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
+          this.obtenerProductosDB();
         },
         error: (err) => {
           alert('Error al guardar en la Base de Datos');
@@ -198,16 +196,15 @@ export class ProductosComponent implements OnInit {
   }
 
   /**
-   * Elimina un producto y limpia la interfaz al instante
+   * Elimina un producto y refresca la tabla
    */
   eliminarProducto(id: number): void {
     const productoABorrar = this.listaProductos.find(p => p.id === id);
     if (productoABorrar && confirm(`¿Estás seguro de que deseas eliminar permanentemente "${productoABorrar.nombre}"?`)) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
         next: () => {
-          // ALERTA CORREGIDA: Sin mencionar Postgres
           this.agregarNotificacion(`Se eliminó el producto: "${productoABorrar.nombre}".`);
-          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
+          this.obtenerProductosDB();
         },
         error: (err) => alert('Error al eliminar de la Base de Datos')
       });
