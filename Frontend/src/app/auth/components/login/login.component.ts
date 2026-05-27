@@ -13,36 +13,45 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent implements OnInit {
 
   loginForm!: FormGroup;
-  loading  = false;
-  errorMsg = '';
+  loading   = false;
+  errorMsg  = '';
 
   constructor(
-    private fb: FormBuilder,
+    private fb:          FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router:      Router
   ) {}
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      correo:     ['', [Validators.required, Validators.email]],
-      contrasena: ['', [Validators.required, Validators.minLength(6)]]
+      email:    ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  get correo()     { return this.loginForm.get('correo')!; }
-  get contrasena() { return this.loginForm.get('contrasena')!; }
+  get email()    { return this.loginForm.get('email')!; }
+  get password() { return this.loginForm.get('password')!; }
 
   onSubmit(): void {
-    if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); return; }
-    this.loading = true;
-    this.errorMsg = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      error: (err) => {
-        this.errorMsg = err.error?.mensaje ?? 'Credenciales incorrectas';
-        this.loading = false;
-      }
-    });
+  if (this.loginForm.invalid) {
+    this.loginForm.markAllAsTouched();
+    return;
   }
+
+  const email = this.loginForm.value.email;
+  const password = this.loginForm.value.password;
+
+  // Usuario de prueba
+  if (email === 'admin@bizly.com' && password === '123456') {
+
+    this.errorMsg = '';
+    this.router.navigate(['/productos']);
+
+  } else {
+
+    this.errorMsg = 'Credenciales incorrectas';
+
+  }
+}
 }
