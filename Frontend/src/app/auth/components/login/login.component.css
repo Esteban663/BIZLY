@@ -1,0 +1,164 @@
+/* ============================================
+   ESTILOS LOCALES DEL LOGIN (CSS COMPATIBLE)
+   ============================================ */
+
+/* Tarjeta contenedora del formulario 
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-card h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: .4rem;
+}
+
+.auth-card .auth-subtitle {
+  font-size: .9rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+/* Grupos del formulario y etiquetas 
+.form-group {
+  margin-bottom: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Inputs con el fondo blanco del panel derecho 
+.form-group input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .95rem;
+  font-family: inherit;
+  color: var(--text-main);
+  background: var(--white);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: #d1d5db;
+}
+
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12); /* Brillo esmeralda suave 
+}
+
+/* Estado de error en inputs controlado por Angular 
+.form-group input.invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
+/* Mensajes de validación debajo de los inputs 
+.form-group small {
+  font-size: .78rem;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Botón de acción (Verde Esmeralda) 
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: .95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: .5rem;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  letter-spacing: .01em;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(.98);
+}
+
+.btn-primary:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Spinner de carga dentro del botón 
+.btn-primary.loading::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mensaje de error general del backend 
+.alert-error {
+  background: var(--danger-light);
+  border: 1px solid #fecaca;
+  color: var(--danger);
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 1.2rem;
+  font-size: .87rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Texto de registro inferior 
+.auth-link {
+  text-align: center;
+  margin-top: 1.4rem;
+  font-size: .87rem;
+  color: var(--text-muted);
+}
+
+.auth-link a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .15s;
+}
+
+.auth-link a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.auth-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}

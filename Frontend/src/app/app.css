@@ -1,0 +1,20 @@
+.app-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  box-sizing: border-box;
+  transition: margin-left 0.2s ease; /* Opcional: añade una transición suave al cambiar de página */
+  
+  /* Por defecto (en el Login, cuando NO hay sidebar), el margen es 0 */
+  margin-left: 0; 
+}
+
+/* SI DENTRO DE .app-layout EXISTE EL COMPONENTE <app-sidebar> */
+.app-layout:has(app-sidebar) .main-content {
+  /* Se aplica el margen de 260px automáticamente solo en Productos/Dashboard */
+  margin-left: 260px; 
+}

@@ -1,0 +1,140 @@
+<div class="dashboard-workspace">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title">Dashboard</h1>
+    </div>
+  </header>
+
+  <section class="kpi-grid">
+
+    <div class="kpi-card">
+      <h3>INGRESOS TOTALES</h3>
+      <p class="kpi-value">${{ ingresosTotal.toLocaleString('es-CO') }}</p>
+      <span class="kpi-tag tag-positive">+ {{ listaIngresos.length }} registros</span>
+      <div class="card-action-container">
+        <button class="btn-card-accion" (click)="abrirFormulario('INGRESO')">＋ Nuevo Ingreso</button>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <h3>EGRESOS TOTALES</h3>
+      <p class="kpi-value">${{ egresosTotal.toLocaleString('es-CO') }}</p>
+      <span class="kpi-tag tag-negative">- {{ listaEgresos.length }} registros</span>
+      <div class="card-action-container">
+        <button class="btn-card-accion btn-rojo" (click)="abrirFormulario('EGRESO')">＋ Nuevo Egreso</button>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <h3>PRODUCTOS BAJO STOCK</h3>
+      <p class="kpi-value">{{ stockBajoCount }}</p>
+      <span class="kpi-tag tag-warning">Requiere atención</span>
+      <div class="card-action-container">
+        <button class="btn-card-accion btn-gris" disabled>Gestionar Stock</button>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <h3>RENDIMIENTO GENERAL</h3>
+      <p class="kpi-value">{{ rendimientoValue }}</p>
+      <span class="kpi-tag tag-performance">Balance de caja</span>
+      <div class="card-action-container" style="height: 50px;"></div>
+    </div>
+
+  </section>
+
+  <section class="bottom-grid">
+    <div class="chart-card">
+      <h3>RENTABILIDAD POR CATEGORÍA</h3>
+      <div class="chart-placeholder-small">
+        <p style="color: #6B7280; text-align: center; padding-top: 60px;">[ Gráfico por Categorías ]</p>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>ÚLTIMOS MOVIMIENTOS EN TIEMPO REAL</h3>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>DESCRIPCIÓN</th>
+              <th>REFERENCIA</th>
+              <th>VALOR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mov of ultimosMovimientos">
+              <td>
+                <div style="font-weight: 500; color: #374151;">{{ mov.descripcion }}</div>
+                <small style="color: #9CA3AF; font-size: 0.75rem;">{{ mov.categoria || 'General' }}</small>
+              </td>
+
+              <td style="color: #6B7280;">
+                {{ mov.referencia && mov.referencia.trim() !== '' ? mov.referencia : '---' }}
+              </td>
+
+              <td [ngClass]="mov.tipo === 'INGRESO' ? 'text-positive' : 'text-negative'"
+                style="font-weight: 600; text-align: right; white-space: nowrap;">
+                {{ mov.tipo === 'INGRESO' ? '+' : '-' }} ${{ mov.monto }}
+              </td>
+            </tr>
+
+            <tr *ngIf="ultimosMovimientos.length === 0">
+              <td colspan="3" style="text-align: center; color: #6B7280; padding: 30px 0;">
+                No hay movimientos registrados en PostgreSQL.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="mostrarPopup">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2>Registrar Nuevo {{ tipoMovimiento }}</h2>
+        <button class="btn-close-modal" (click)="cerrarFormulario()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Descripción del Movimiento</label>
+          <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Ej: Venta de calzado, Pago de servicios..." class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label>Monto ($ COP)</label>
+          <input type="number" [(ngModel)]="nuevoMovimiento.monto" placeholder="Ej: 50000" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label>Categoría</label>
+          <select [(ngModel)]="nuevoMovimiento.categoria" class="form-control combo-desplegable">
+            <option *ngFor="let cat of categoriasDisponibles" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Referencia / SKU / Código</label>
+          <input type="text" [(ngModel)]="nuevoMovimiento.referencia" placeholder="Ej: REF-9921" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Operación</label>
+          <input type="date" [(ngModel)]="nuevoMovimiento.fecha" class="form-control" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" (click)="cerrarFormulario()">Cancelar</button>
+        <button class="btn-modal-guardar" [ngClass]="{'btn-rojo-bg': tipoMovimiento === 'EGRESO'}"
+          (click)="registrarMovimiento()">Guardar en Base de Datos</button>
+      </div>
+    </div>
+  </div>
+
+</div>

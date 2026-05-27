@@ -1,0 +1,75 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: #013220; /* Verde Bosque de Fondo Oficial */
+  color: #FFFFFF; /* Blanco de texto Oficial */
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+}
+
+.logo-container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  max-height: 50px;
+  object-fit: contain;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7); /* Texto un poco opaco por defecto */
+  transition: all 0.2s ease;
+}
+
+.sidebar-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+/* Estilo para la pestaña que se encuentre actualmente seleccionada */
+.sidebar-menu li.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  border-left: 4px solid #10B981; /* Detalle en Verde Esmeralda de Acción */
+  font-weight: bold;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.sidebar-footer {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
