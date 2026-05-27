@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/nomina")
-@CrossOrigin(origins = "http://localhost:8080")
+@RequestMapping("/bizly/nomina")
 public class NominaController {
 
     @Autowired
