@@ -102,7 +102,7 @@ export class ProductosComponent implements OnInit {
   /**
    * Agrega un evento con hora actual al historial de notificaciones
    */
-  agregarNotificacion(mensaje: string): void {
+  agregarNotificacion(mensaje: string) {
     const ahora = new Date();
     const horaTexto = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     this.listaNotificaciones.unshift(`[${horaTexto}] ${mensaje}`);
