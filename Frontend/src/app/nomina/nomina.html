@@ -1,0 +1,135 @@
+<!-- ===================== MODAL: FORMULARIO ===================== -->
+<div *ngIf="mostrarFormulario" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-content-stripe"></div>
+    <div class="modal-header">
+      <h2>{{ nominaEnEdicion ? 'Editar Registro' : 'Nuevo Registro' }}</h2>
+      <p>Ingresa los datos del empleado para la nómina</p>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label class="modal-label">NOMBRE DEL EMPLEADO *</label>
+        <input type="text" placeholder="Ej. María García" class="modal-input" [(ngModel)]="formNombre">
+      </div>
+      <div>
+        <label class="modal-label">CÉDULA *</label>
+        <input type="text" placeholder="Ej. 1234567890" class="modal-input" [(ngModel)]="formCedula">
+      </div>
+      <div>
+        <label class="modal-label">SUELDO BASE ($) *</label>
+        <input type="number" step="0.01" placeholder="0.00" class="modal-input" [(ngModel)]="formSueldo">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button (click)="alternarFormulario()" class="btn-modal-cancel">CANCELAR</button>
+      <button (click)="guardarNomina()" class="btn-modal-save">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: NOTIFICACIONES ===================== -->
+<div *ngIf="mostrarModalNotificaciones" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-content-stripe"></div>
+    <div class="modal-header">
+      <h2>Notificaciones de Actividad</h2>
+      <p>Historial de cambios recientes en nómina</p>
+    </div>
+    <div class="modal-body-alerts">
+      <p class="empty-alerts" *ngIf="listaNotificaciones.length === 0">📭 No hay registros de actividades recientes.</p>
+      <ul class="alerts-modal-list" *ngIf="listaNotificaciones.length > 0">
+        <li *ngFor="let alerta of listaNotificaciones">{{ alerta }}</li>
+      </ul>
+    </div>
+    <div class="modal-footer">
+      <button (click)="limpiarNotificaciones()" class="btn-modal-clear" *ngIf="listaNotificaciones.length > 0">🗑️ LIMPIAR HISTORIAL</button>
+      <div *ngIf="listaNotificaciones.length === 0"></div>
+      <button (click)="alternarModalNotificaciones()" class="btn-modal-save">CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD NÓMINA ===================== -->
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <header class="header-bar">
+    <div>
+      <h2>Nómina</h2>
+      <p class="header-subtitle">Gestión de sueldos y empleados registrados</p>
+    </div>
+    <div class="user-profile">
+      <span class="notification-icon" (click)="alternarModalNotificaciones()">
+        🔔
+        <span class="badge" *ngIf="listaNotificaciones.length > 0">{{ listaNotificaciones.length }}</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- Tarjetas de resumen -->
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="summary-icon">👥</div>
+      <div>
+        <p class="summary-label">EMPLEADOS REGISTRADOS</p>
+        <p class="summary-value">{{ listaNomina.length }}</p>
+      </div>
+    </div>
+    <div class="summary-card summary-card--accent">
+      <div class="summary-icon">💰</div>
+      <div>
+        <p class="summary-label">TOTAL NÓMINA MENSUAL</p>
+        <p class="summary-value">{{ totalNomina | currency }}</p>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">📊</div>
+      <div>
+        <p class="summary-label">PROMEDIO SUELDO</p>
+        <p class="summary-value">{{ (listaNomina.length > 0 ? totalNomina / listaNomina.length : 0) | currency }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-filters">
+      <input type="text" placeholder="Buscar por nombre o cédula..." class="filter-input"
+             [(ngModel)]="terminoBusqueda" />
+    </div>
+    <button class="btn-primary" (click)="alternarFormulario()">AÑADIR EMPLEADO</button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>EMPLEADO</th>
+          <th>CÉDULA</th>
+          <th>SUELDO BASE</th>
+          <th style="text-align:center">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let registro of nominaFiltrada; let i = index">
+          <td class="index-column">{{ i + 1 }}</td>
+          <td class="name-column"><strong>{{ registro.nombreEmpleado }}</strong></td>
+          <td class="code-column">{{ registro.cedula }}</td>
+          <td class="price-column">{{ registro.sueldoBase | currency }}</td>
+          <td class="actions-column">
+            <button class="btn-action edit" (click)="editarNomina(registro)" title="Editar">✏️</button>
+            <button class="btn-action delete" (click)="eliminarNomina(registro.id!, registro.nombreEmpleado)" title="Eliminar">🗑️</button>
+          </td>
+        </tr>
+        <tr *ngIf="nominaFiltrada.length === 0">
+          <td colspan="5" style="text-align:center;color:#7db89a;padding:40px;font-weight:500">
+            🔍 No se encontraron registros.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
