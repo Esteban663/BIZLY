@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,7 @@ import { Movimiento, MetricCard } from '../models/movimiento.model';
 export class Dashboard implements OnInit {
   // Inyectamos nuestro nuevo servicio especializado
   private dashboardService = inject(DashboardService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Estados financieros expuestos a las Cards del HTML
   ingresosTotal: number = 0;
@@ -46,6 +47,7 @@ export class Dashboard implements OnInit {
         this.listaIngresos = ingresos;
         this.listaEgresos = egresos;
         this.calcularMetricasYTabla();
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al mapear datos en el componente:', err)
     });
