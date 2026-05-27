@@ -461,3 +461,21 @@
 .btn-modal-clear:hover {
   text-decoration: underline !important;
 }
+/* Colores de badges de stock visual */
+.status-badge.activo {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.status-badge.inactivo {
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+.status-badge.general {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
