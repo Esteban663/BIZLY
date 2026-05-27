@@ -1,34 +1,44 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap, throwError } from 'rxjs';
 import { LoginRequest, RegisterRequest, AuthResponse } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly TOKEN_KEY = 'auth_token';
-  private readonly USER_KEY  = 'auth_user';
+  private readonly USER_KEY = 'auth_user';
   private apiUrl = environment.apiUrl;
 
-  isAuthenticated = signal<boolean>(this.hasToken());
+  isAuthenticated = signal<boolean>(this.hasSession());
   currentUser     = signal<AuthResponse | null>(this.getStoredUser());
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
+  // Registro → POST /usuarios
+  register(data: RegisterRequest): Observable<AuthResponse> {
+    const payload = { ...data, rol: 'USER' };
+    return this.http.post<AuthResponse>(`${this.apiUrl}/usuarios`, payload)
       .pipe(tap(res => this.saveSession(res)));
   }
 
-  register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, data)
-      .pipe(tap(res => this.saveSession(res)));
+  // Login → GET /usuarios y filtra por correo+contrasena
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http.get<AuthResponse[]>(`${this.apiUrl}/usuarios`).pipe(
+      map(usuarios => {
+        const found = usuarios.find(
+          u => u.correo === credentials.correo &&
+               u.contrasena === credentials.contrasena
+        );
+        if (!found) throw { error: { mensaje: 'Correo o contraseña incorrectos' } };
+        return found;
+      }),
+      tap(res => this.saveSession(res))
+    );
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.isAuthenticated.set(false);
     this.currentUser.set(null);
@@ -36,23 +46,18 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    const user = this.getStoredUser();
+    return user ? `session-${user.id}` : null;
   }
 
-  private saveSession(auth: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, auth.token);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(auth));
+  private saveSession(user: AuthResponse): void {
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.isAuthenticated.set(true);
-    this.currentUser.set(auth);
+    this.currentUser.set(user);
   }
 
-  private hasToken(): boolean {
-    const token = localStorage.getItem(this.TOKEN_KEY);
-    if (!token) return false;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 > Date.now();
-    } catch { return false; }
+  private hasSession(): boolean {
+    return !!localStorage.getItem(this.USER_KEY);
   }
 
   private getStoredUser(): AuthResponse | null {
