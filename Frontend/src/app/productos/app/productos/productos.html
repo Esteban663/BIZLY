@@ -7,25 +7,25 @@
     <div class="modal-body">
       <div>
         <label class="modal-label">NOMBRE DEL PRODUCTO *</label>
-        <input #txtNombre type="text" placeholder="Ej. Camisa Oxford" class="modal-input">
+        <input type="text" placeholder="Ej. Camisa Oxford" class="modal-input" [(ngModel)]="formNombre">
       </div>
       <div class="modal-grid-2">
         <div>
           <label class="modal-label">PRECIO VENTA ($) *</label>
-          <input #txtPrecio type="number" step="0.01" placeholder="0.00" class="modal-input">
+          <input type="number" step="0.01" placeholder="0.00" class="modal-input" [(ngModel)]="formPrecio">
         </div>
         <div>
           <label class="modal-label">CANTIDAD DISPONIBLE *</label>
-          <input #txtCantidad type="number" placeholder="0" class="modal-input">
+          <input type="number" placeholder="0" class="modal-input" [(ngModel)]="formCantidad">
         </div>
       </div>
       <div>
         <label class="modal-label">CÓDIGO INTERNO *</label>
-        <input #txtCodigo type="text" placeholder="Ej. SKU-001" class="modal-input">
+        <input type="text" placeholder="Ej. SKU-001" class="modal-input" [(ngModel)]="formCodigo">
       </div>
       <div>
         <label class="modal-label">CATEGORÍA</label>
-        <select #selectCategoria class="modal-input" style="cursor: pointer;">
+        <select class="modal-input" style="cursor: pointer;" [(ngModel)]="formCategoria">
           <option value="General">📦 General</option>
           <option value="Ropa">👕 Ropa</option>
           <option value="Calzado">👟 Calzado</option>
@@ -35,7 +35,7 @@
     </div>
     <div class="modal-footer">
       <button (click)="alternarFormulario()" class="btn-modal-cancel">CANCELAR</button>
-      <button (click)="guardarProducto(txtNombre.value, txtCodigo.value, txtPrecio.value, txtCantidad.value, selectCategoria.value)" class="btn-modal-save">GUARDAR</button>
+      <button (click)="guardarProducto()" class="btn-modal-save">GUARDAR</button>
     </div>
   </div>
 </div>
@@ -44,11 +44,14 @@
   <div class="modal-content">
     <div class="modal-header">
       <h2>Notificaciones de Actividad</h2>
-      <p>Historial de cambios recientes en el sistema</p> </div>
+      <p>Historial de cambios recientes en el sistema</p> 
+    </div>
     <div class="modal-body-alerts">
       <p class="empty-alerts" *ngIf="listaNotificaciones.length === 0">📭 No hay registros de actividades recientes.</p>
       <ul class="alerts-modal-list" *ngIf="listaNotificaciones.length > 0">
-        <li *ngFor="let alerta of listaNotificaciones">{{ alerta }}</li>
+        <li *ngFor="let alerta of listaNotificaciones" [ngClass]="{'alerta-critica': alerta.includes('⚠️ STOCK BAJO')}">
+          {{ alerta }}
+        </li>
       </ul>
     </div>
     <div class="modal-footer">
@@ -61,7 +64,7 @@
 
 <div class="dashboard-container">
   <header class="header-bar">
-    <h2>Producto</h2>
+    <h2>Productos</h2>
     <div class="user-profile">
       <span class="notification-icon" (click)="alternarModalNotificaciones()">
         🔔 <span class="badge" *ngIf="listaNotificaciones.length > 0">{{ listaNotificaciones.length }}</span>
@@ -87,38 +90,46 @@
     <table class="products-table">
       <thead>
         <tr>
-          <th><input type="checkbox" /></th>
           <th>NOMBRE</th>
           <th>CÓDIGO</th>
           <th>PRECIO</th>
           <th>CANTIDAD</th>
           <th>CATEGORÍA</th>
           <th>ESTADO (STOCK)</th>
-          <th>ACCIONES</th>
+          <th style="text-align: center;">ACCIONES</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let producto of productosFiltrados">
-          <td><input type="checkbox" /></td>
-          <td class="name-column"><span>{{ producto.nombre }}</span></td>
-          <td>{{ producto.codigo }}</td>
-          <td>{{ producto.precio | currency }}</td>
-          <td>{{ producto.cantidad }}</td>
+          <td class="name-column"><strong>{{ producto.nombre }}</strong></td>
+          <td class="code-column">{{ producto.codigo }}</td>
+          <td class="price-column">{{ producto.precio | currency }}</td>
+          
+          <td class="stock-column" [ngClass]="{'stock-critico': producto.cantidad < 2}">
+            {{ producto.cantidad }} u.
+          </td>
+          
           <td><span class="status-badge general">{{ producto.categoria }}</span></td>
+          
           <td>
-            <span class="status-badge" [ngClass]="producto.cantidad > 0 ? 'activo' : 'inactivo'">
-              {{ producto.cantidad > 0 ? '🟢 Activo' : '🔴 Agotado' }}
+            <span class="status-badge" [ngClass]="producto.cantidad >= 2 ? 'activo' : 'inactivo'">
+              {{ producto.cantidad >= 2 ? '🟢 Disponible' : '🔴 Stock Bajo' }}
             </span>
           </td>
+          
           <td class="actions-column">
-            <button class="btn-action edit" (click)="editarProducto(producto)">✏️</button>
-            <button class="btn-action delete" (click)="eliminarProducto(producto.id)">🗑️</button>
+            <button class="btn-action edit" (click)="editarProducto(producto)" title="Editar">✏️</button>
+            <button class="btn-action delete" (click)="eliminarProducto(producto.id)" title="Eliminar">🗑️</button>
           </td>
         </tr>
+
         <tr *ngIf="productosFiltrados.length === 0">
-          <td colspan="8" style="text-align: center; color: #94a3b8; padding: 30px;">🔍 No hay coincidencias para los criterios seleccionados.</td>
+          <td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px; font-weight: 500;">
+            🔍 No hay coincidencias para los criterios seleccionados.
+          </td>
         </tr>
       </tbody>
     </table>
+    
   </div>
 </div>

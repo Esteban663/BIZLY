@@ -479,3 +479,20 @@
   color: #334155 !important;
   border: 1px solid #cbd5e1 !important;
 }
+/* Color rojo moderno e intenso para celdas con stock menor a 2 */
+.stock-column.stock-critico {
+  color: #dc2626 !important;
+  font-weight: 700;
+  background-color: #fef2f2;
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+/* Diseño especial color ámbar/rojo para la notificación de advertencia en la lista */
+.alerts-modal-list li.alerta-critica {
+  border-left: 4px solid #dc2626 !important;
+  background-color: #fff5f5;
+  color: #991b1b;
+  font-weight: 600;
+}

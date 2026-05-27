@@ -1,7 +1,7 @@
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http'; 
+import { HttpClient, HttpClientModule } from '@angular/common/http'; 
 
 interface Producto {
   id: number;
@@ -15,18 +15,18 @@ interface Producto {
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './productos.html',
   styleUrl: './productos.css'
 })
 export class ProductosComponent implements OnInit {
   private readonly apiUrl = 'http://localhost:8080/bizly/inventario'; 
 
-  @ViewChild('txtNombre') txtNombre!: ElementRef<HTMLInputElement>;
-  @ViewChild('txtPrecio') txtPrecio!: ElementRef<HTMLInputElement>;
-  @ViewChild('txtCantidad') txtCantidad!: ElementRef<HTMLInputElement>;
-  @ViewChild('txtCodigo') txtCodigo!: ElementRef<HTMLInputElement>;
-  @ViewChild('selectCategoria') selectCategoria!: ElementRef<HTMLSelectElement>;
+  formNombre: string = '';
+  formPrecio: number | null = null;
+  formCantidad: number | null = null;
+  formCodigo: string = '';
+  formCategoria: string = 'General';
 
   listaProductos: Producto[] = [];
 
@@ -41,18 +41,50 @@ export class ProductosComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    // Carga los datos automáticamente apenas abre la página
+    this.refrescarTodo();
+  }
+
+  /**
+   * Resetea filtros de búsqueda y jala los datos más recientes del servidor
+   */
+  refrescarTodo(): void {
+    this.terminoBusqueda = '';
+    this.categoriaSeleccionada = 'Todos';
+    this.limpiarFormulario();
     this.obtenerProductosDB();
   }
 
-  obtenerProductosDB() {
+  /**
+   * Consume el backend para traer la lista actualizada de productos
+   */
+  obtenerProductosDB(): void {
     this.http.get<Producto[]>(this.apiUrl).subscribe({
       next: (data) => {
         this.listaProductos = data;
+        this.verificarStockCritico(); // Valida las alertas de stock bajo
       },
-      error: (err) => console.error('Error cargando datos de la base de datos:', err)
+      error: (err) => console.error('Error cargando datos del servidor:', err)
     });
   }
 
+  /**
+   * Valida si quedan pocas unidades (menos de 2) y dispara la notificación
+   */
+  verificarStockCritico(): void {
+    this.listaProductos.forEach(producto => {
+      if (producto.cantidad < 2) {
+        const yaExisteAlerta = this.listaNotificaciones.some(n => n.includes(`⚠️ STOCK BAJO: "${producto.nombre}"`));
+        if (!yaExisteAlerta) {
+          this.agregarNotificacion(`⚠️ STOCK BAJO: "${producto.nombre}" (Solo quedan ${producto.cantidad} u.).`);
+        }
+      }
+    });
+  }
+
+  /**
+   * Filtro dinámico en tiempo real para la barra de búsqueda
+   */
   get productosFiltrados(): Producto[] {
     return this.listaProductos.filter(producto => {
       const termino = this.terminoBusqueda.toLowerCase().trim();
@@ -67,100 +99,115 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  agregarNotificacion(mensaje: string) {
+  /**
+   * Agrega un evento con hora actual al historial de notificaciones
+   */
+  agregarNotificacion(mensaje: string): void {
     const ahora = new Date();
-    const horaFormateada = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    this.listaNotificaciones.unshift(`[${horaFormateada}] ${mensaje}`);
+    const horaTexto = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    this.listaNotificaciones.unshift(`[${horaTexto}] ${mensaje}`);
   }
 
-  alternarModalNotificaciones() {
+  alternarModalNotificaciones(): void {
     this.mostrarModalNotificaciones = !this.mostrarModalNotificaciones;
   }
 
-  limpiarNotificaciones() {
+  limpiarNotificaciones(): void {
     this.listaNotificaciones = [];
   }
 
-  alternarFormulario() {
+  alternarFormulario(): void {
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
-      this.productoEnEdicion = null;
+      this.limpiarFormulario();
     }
   }
 
-  guardarProducto(nombre: string, codigo: string, precio: string, cantidad: string, categoria: string) {
-    if (!nombre || !codigo || !precio || !cantidad) {
+  limpiarFormulario(): void {
+    this.productoEnEdicion = null;
+    this.formNombre = '';
+    this.formPrecio = null;
+    this.formCantidad = null;
+    this.formCodigo = '';
+    this.formCategoria = 'General';
+  }
+
+  /**
+   * Guarda o actualiza el producto y ejecuta la recarga automática en caliente
+   */
+  guardarProducto(): void {
+    if (!this.formNombre || !this.formCodigo || this.formPrecio === null || this.formCantidad === null) {
       alert('Por favor, rellene todos los campos obligatorios del producto.');
       return;
     }
 
     const datosProducto: any = {
-      nombre: nombre,
-      codigo: codigo,
-      precio: parseFloat(precio),
-      cantidad: parseInt(cantidad, 10),
-      categoria: categoria || 'General'
+      nombre: this.formNombre,
+      codigo: this.formCodigo,
+      precio: this.formPrecio,
+      cantidad: this.formCantidad,
+      categoria: this.formCategoria || 'General'
     };
 
-    // 1. REVISAMOS PRIMERO SI ES EDICIÓN ANTES DE CERRAR EL MODAL
+    const nombreGuardado = this.formNombre;
+    const codigoGuardado = this.formCodigo;
+
+    // CASO: EDITAR PRODUCTO (PUT)
     if (this.productoEnEdicion) {
       datosProducto.id = this.productoEnEdicion.id;
-      
-      // Ahora sí, cerramos el formulario de forma segura
       this.alternarFormulario();
 
-      // Petición de actualización (PUT)
       this.http.put(`${this.apiUrl}/${datosProducto.id}`, datosProducto).subscribe({
         next: () => {
-          // Mensaje exacto de actualización
-          this.agregarNotificacion(`Se actualizó: "${nombre}" (Código: ${codigo}).`);
-          this.obtenerProductosDB(); 
+          // ALERTA CORREGIDA: Sin mencionar Postgres
+          this.agregarNotificacion(`Se actualizó el producto: "${nombreGuardado}" (Código: ${codigoGuardado}).`);
+          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
         },
         error: (err) => {
           alert('Error al actualizar en la Base de Datos');
-          this.obtenerProductosDB();
+          this.refrescarTodo();
         }
       });
 
+    // CASO: NUEVO PRODUCTO (POST)
     } else {
-      // Si no hay producto en edición, es uno nuevo
       this.alternarFormulario();
 
-      // Petición de guardado nuevo (POST)
       this.http.post(this.apiUrl, datosProducto).subscribe({
         next: () => {
-          // Mensaje exacto de guardado
-          this.agregarNotificacion(`Se guardó: "${nombre}".`);
-          this.obtenerProductosDB(); 
+          // ALERTA CORREGIDA: Sin mencionar Postgres
+          this.agregarNotificacion(`Se guardó el producto: "${nombreGuardado}".`);
+          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
         },
         error: (err) => {
           alert('Error al guardar en la Base de Datos');
-          this.obtenerProductosDB();
+          this.refrescarTodo();
         }
       });
     }
   }
 
-  editarProducto(producto: Producto) {
-    this.mostrarFormulario = true;
+  editarProducto(producto: Producto): void {
     this.productoEnEdicion = producto;
-
-    setTimeout(() => {
-      if (this.txtNombre) this.txtNombre.nativeElement.value = producto.nombre || '';
-      if (this.txtPrecio) this.txtPrecio.nativeElement.value = producto.precio ? producto.precio.toString() : '';
-      if (this.txtCantidad) this.txtCantidad.nativeElement.value = producto.cantidad ? producto.cantidad.toString() : '';
-      if (this.txtCodigo) this.txtCodigo.nativeElement.value = producto.codigo || '';
-      if (this.selectCategoria) this.selectCategoria.nativeElement.value = producto.categoria || 'General';
-    }, 50);
+    this.formNombre = producto.nombre;
+    this.formPrecio = producto.precio;
+    this.formCantidad = producto.cantidad;
+    this.formCodigo = producto.codigo;
+    this.formCategoria = producto.categoria || 'General';
+    this.mostrarFormulario = true;
   }
 
-  eliminarProducto(id: number) {
+  /**
+   * Elimina un producto y limpia la interfaz al instante
+   */
+  eliminarProducto(id: number): void {
     const productoABorrar = this.listaProductos.find(p => p.id === id);
     if (productoABorrar && confirm(`¿Estás seguro de que deseas eliminar permanentemente "${productoABorrar.nombre}"?`)) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
         next: () => {
-          this.agregarNotificacion(`Se eliminó: "${productoABorrar.nombre}".`);
-          this.obtenerProductosDB(); 
+          // ALERTA CORREGIDA: Sin mencionar Postgres
+          this.agregarNotificacion(`Se eliminó el producto: "${productoABorrar.nombre}".`);
+          this.refrescarTodo(); // Fuerza la recarga inmediata en pantalla
         },
         error: (err) => alert('Error al eliminar de la Base de Datos')
       });
