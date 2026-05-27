@@ -19,14 +19,13 @@ public class NominaController {
         return nominaRepository.findAll();
     }
 
+    @PostMapping
     public Nomina agregar(@RequestBody Nomina data){
         Nomina nuevaNomina = new Nomina();
 
-        
         nuevaNomina.setNombreEmpleado(data.getNombreEmpleado());
         nuevaNomina.setCedula(data.getCedula());
         nuevaNomina.setSueldoBase(data.getSueldoBase());
-        
 
         return nominaRepository.save(nuevaNomina);
     }
@@ -37,10 +36,8 @@ public class NominaController {
         Nomina n = nominaRepository.findById(id).orElse(null);
 
         if (n != null) {
-            
             n.setNombreEmpleado(data.getNombreEmpleado());
             n.setCedula(data.getCedula());
-            n.setSueldoBase(data.getSueldoBase());
             n.setSueldoBase(data.getSueldoBase());
 
             return nominaRepository.save(n);
@@ -49,9 +46,13 @@ public class NominaController {
         return null;
     }
 
-    @PutMapping("/{id}")
+    @GetMapping("/{id}")
     public String buscar(@PathVariable Long id){
         Nomina n = nominaRepository.findById(id).orElse(null);
+
+        if (n == null) {
+            return "Nomina no encontrada";
+        }
 
         String nombre = n.getNombreEmpleado();
         String cedula = n.getCedula();
