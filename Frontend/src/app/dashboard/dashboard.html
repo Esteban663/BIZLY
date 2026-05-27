@@ -100,6 +100,11 @@
 
       <div class="modal-body">
         <div class="form-group">
+          <label>Descripción del Movimiento</label>
+          <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Ej: Venta de calzado, Pago de servicios..." class="form-control" />
+        </div>
+
+        <div class="form-group">
           <label>Monto ($ COP)</label>
           <input type="number" [(ngModel)]="nuevoMovimiento.monto" placeholder="Ej: 50000" class="form-control" />
         </div>

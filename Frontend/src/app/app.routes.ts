@@ -1,7 +1,7 @@
+import { ProductosComponent } from './productos/app/productos/productos';
+import { Dashboard } from './dashboard/components/dashboard';
 import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/components/login/login.component';
-import { ProductosComponent } from './productos/app/productos/productos';
-import { Dashboard } from './dashboard/components/dashboard.components';
 // 1. Aquí importamos tu nuevo componente (Ajusta la ruta si tu archivo se llama diferente)
 import { NominaComponent } from './nomina/nomina';
 
