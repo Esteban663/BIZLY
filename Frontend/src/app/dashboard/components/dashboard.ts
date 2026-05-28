@@ -32,6 +32,7 @@ export class Dashboard implements OnInit {
   totalNetoMovimientos: number = 0;
 
   // Control del Popup y Categorías dinámicas
+  modoEdicion: boolean = false;
   mostrarPopup: boolean = false;
   tipoMovimiento: 'INGRESO' | 'EGRESO' = 'INGRESO';
   categoriasDisponibles: string[] = [];
@@ -55,6 +56,16 @@ export class Dashboard implements OnInit {
     });
   }
 
+  abrirEditar(movimiento: Movimiento): void {
+  this.modoEdicion = true;
+  this.tipoMovimiento = movimiento.tipo || 'INGRESO';
+  this.nuevoMovimiento = { ...movimiento };
+  this.categoriasDisponibles = this.tipoMovimiento === 'INGRESO' 
+    ? ['Venta', 'Ganancia ocasional'] 
+    : ['Pago deuda','Nomina', 'Costos operacion'];
+    this.mostrarPopup = true;
+  }
+
   abrirFormulario(tipo: 'INGRESO' | 'EGRESO'): void {
     this.tipoMovimiento = tipo;
     this.mostrarPopup = true;
@@ -70,28 +81,48 @@ export class Dashboard implements OnInit {
 
   cerrarFormulario(): void {
     this.mostrarPopup = false;
+    this.modoEdicion = false;
+    this.nuevoMovimiento = this.inicializarFormulario();
   }
 
   registrarMovimiento(): void {
-    if (!this.nuevoMovimiento.monto || !this.nuevoMovimiento.descripcion) {
-      alert('Por favor, complete el monto y la descripción.');
-      return;
-    }
-
-    // El componente decide qué método del servicio llamar, pero ya no sabe de URLs ni de JSONs
-    const peticion = this.tipoMovimiento === 'INGRESO' 
-      ? this.dashboardService.registrarIngreso(this.nuevoMovimiento)
-      : this.dashboardService.registrarEgreso(this.nuevoMovimiento);
-
-    peticion.subscribe({
-      next: () => {
-        alert(`${this.tipoMovimiento} guardado con éxito en PostgreSQL.`);
-        this.cerrarFormulario();
-        this.cargarDatosDashboard(); // Refrescar métricas automáticamente
-      },
-      error: (err) => alert('Error de comunicación con el Backend.')
-    });
+  if (!this.nuevoMovimiento.monto || !this.nuevoMovimiento.descripcion) {
+    alert('Por favor, complete el monto y la descripción.');
+    return;
   }
+
+  if (this.modoEdicion) {
+    // ---- LÓGICA DE ACTUALIZACIÓN (PUT) ----
+    this.dashboardService.updateMovimiento(this.nuevoMovimiento).subscribe({
+      next: () => {
+        alert('Movimiento actualizado con éxito en PostgreSQL');
+        this.cerrarFormulario();
+        this.cargarDatosDashboard(); 
+      },
+      error: (err) => console.error('Error al actualizar:', err)
+    });
+  } else {
+    // ---- SOLUCIÓN AL ERROR DE CREACIÓN ----
+    // Evaluamos el tipo de movimiento para usar los métodos reales de tu Service
+    if (this.tipoMovimiento === 'INGRESO') {
+      this.dashboardService.registrarIngreso(this.nuevoMovimiento).subscribe({
+        next: () => {
+          this.cerrarFormulario();
+          this.cargarDatosDashboard();
+        },
+        error: (err) => console.error('Error al crear ingreso:', err)
+      });
+    } else {
+      this.dashboardService.registrarEgreso(this.nuevoMovimiento).subscribe({
+        next: () => {
+          this.cerrarFormulario();
+          this.cargarDatosDashboard();
+        },
+        error: (err) => console.error('Error al crear egreso:', err)
+      });
+    }
+  }
+}
 
   private calcularMetricasYTabla(): void {
     this.ingresosTotal = this.listaIngresos.reduce((sum, item) => sum + (item.monto || 0), 0);

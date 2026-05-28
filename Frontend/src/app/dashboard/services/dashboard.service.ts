@@ -37,4 +37,12 @@ export class DashboardService {
   registrarEgreso(movimiento: Movimiento): Observable<Movimiento> {
     return this.http.post<Movimiento>(`${this.API_URL}/egresos`, movimiento);
   }
+
+  updateMovimiento(movimiento: Movimiento): Observable<Movimiento> {
+  // Define la URL dependiendo de si es ingreso o egreso basándote en tus endpoints de Spring Boot
+  const endpoint = movimiento.tipo === 'INGRESO' ? 'ingresos' : 'egresos';
+  
+  // Ejecuta la petición PUT apuntando al ID específico: http://localhost:8080/bizly/ingresos/5
+  return this.http.put<Movimiento>(`http://localhost:8080/bizly/${endpoint}/${movimiento.id}`, movimiento);
+}
 }
