@@ -36,10 +36,59 @@
   </section>
 
   <section class="bottom-grid">
+    
     <div class="chart-card">
       <h3>RENTABILIDAD POR CATEGORÍA</h3>
-      <div class="chart-placeholder-small">
-        <p style="color: #6B7280; text-align: center; padding-top: 60px;">[ Gráfico por Categorías ]</p>
+
+      <div *ngIf="rentabilidadCategorias.length === 0" class="chart-empty">
+        <span>📊</span>
+        <p>Sin datos de categorías aún</p>
+      </div>
+
+      <div *ngIf="rentabilidadCategorias.length > 0" class="rentabilidad-chart">
+        
+        <div class="chart-legend">
+          <span class="legend-dot dot-ingreso"></span> Ingresos
+          <span class="legend-dot dot-egreso"></span> Egresos
+        </div>
+
+        <div class="chart-rows">
+          <div class="chart-row" *ngFor="let item of rentabilidadCategorias">
+            
+            <div class="chart-row-label" [title]="item.categoria">
+              {{ item.categoria }}
+            </div>
+
+            <div class="chart-row-bars">
+              <div class="bar-track">
+                <div class="bar bar-ingreso"
+                     [style.width.%]="item.ingresos > 0 ? (item.ingresos / (item.ingresos + item.egresos) * 100) : 0"
+                     [title]="'Ingresos: $' + item.ingresos.toLocaleString('es-CO')">
+                </div>
+              </div>
+              <div class="bar-track">
+                <div class="bar bar-egreso"
+                     [style.width.%]="item.egresos > 0 ? (item.egresos / (item.ingresos + item.egresos) * 100) : 0"
+                     [title]="'Egresos: $' + item.egresos.toLocaleString('es-CO')">
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-row-neto" [ngClass]="item.neto >= 0 ? 'neto-positivo' : 'neto-negativo'">
+              {{ item.neto >= 0 ? '+' : '' }}${{ item.neto.toLocaleString('es-CO') }}
+            </div>
+
+          </div>
+        </div>
+
+        <div class="chart-total">
+          <span>Balance total</span>
+          <strong [ngClass]="(ingresosTotal - egresosTotal) >= 0 ? 'neto-positivo' : 'neto-negativo'">
+            {{ (ingresosTotal - egresosTotal) >= 0 ? '+' : '' }}
+            ${{ (ingresosTotal - egresosTotal).toLocaleString('es-CO') }}
+          </strong>
+        </div>
+
       </div>
     </div>
 
@@ -51,7 +100,7 @@
             <tr>
               <th>DESCRIPCIÓN</th>
               <th>REFERENCIA</th>
-              <th>VALOR</th>
+              <th style="text-align: right;">VALOR</th>
             </tr>
           </thead>
           <tbody>
@@ -66,9 +115,8 @@
               </td>
 
               <td [ngClass]="mov.tipo === 'INGRESO' ? 'text-positive' : 'text-negative'"
-                style="font-weight: 600; text-align: right; white-space: nowrap;">
-                {{ mov.tipo === 'INGRESO' ? '+' : '-' }} ${{ mov.monto }}
-              </td>
+                  style="font-weight: 600; text-align: right; white-space: nowrap;">
+                  {{ mov.tipo === 'INGRESO' ? '+' : '-' }} ${{ mov.monto?.toLocaleString('es-CO') }}              </td>
             </tr>
 
             <tr *ngIf="ultimosMovimientos.length === 0">
@@ -80,6 +128,7 @@
         </table>
       </div>
     </div>
+
   </section>
 
   <div class="modal-backdrop" *ngIf="mostrarPopup">
