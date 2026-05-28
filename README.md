@@ -177,5 +177,5 @@ spring.jpa.hibernate.ddl-auto=update
 |-----|--------|
 | Líder de proyecto | Esteban Arroyave Gomez |
 | QA | Juan Pablo Ramirez Gonzales |
-| Frontend Developers | Maria Giraldo, Mateo Quintero |
-| Backend Developers | Samuel Murillo, Jhon Deivid Hoyos |
+| Frontend Developers | Maria Giraldo, Mateo Quintero, Jhon Deivid Hoyos |
+| Backend Developers | Samuel Murillo, Esteban Arroyave, Juan Pablo Ramirez |
