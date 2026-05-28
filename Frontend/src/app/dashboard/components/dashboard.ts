@@ -10,9 +10,9 @@ import { Movimiento, MetricCard } from '../models/movimiento.model';
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: '../dashboard.html',
-  styleUrl: '../dashboard.css'
-})
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
+})  
 //Clase
 export class Dashboard implements OnInit {
   // Inyectamos nuestro nuevo servicio especializado
@@ -113,6 +113,7 @@ export class Dashboard implements OnInit {
     this.totalNetoMovimientos = this.ultimosMovimientos.reduce((sum, item) => {
       return item.tipo === 'INGRESO' ? sum + (item.monto || 0) : sum - (item.monto || 0);
     }, 0);
+    this.calcularRentabilidadCategorias();
   }
 
   private inicializarFormulario(categoriaDefecto: string = ''): Movimiento {
@@ -124,4 +125,37 @@ export class Dashboard implements OnInit {
       fecha: new Date().toISOString().split('T')[0]
     };
   }
+  // Datos del gráfico de rentabilidad por categoría
+rentabilidadCategorias: { categoria: string; ingresos: number; egresos: number; neto: number; porcentaje: number }[] = [];
+
+private calcularRentabilidadCategorias(): void {
+  const mapa = new Map<string, { ingresos: number; egresos: number }>();
+
+  this.listaIngresos.forEach(i => {
+    const cat = i.categoria || 'General';
+    const actual = mapa.get(cat) || { ingresos: 0, egresos: 0 };
+    mapa.set(cat, { ...actual, ingresos: actual.ingresos + (i.monto || 0) });
+  });
+
+  this.listaEgresos.forEach(e => {
+    const cat = e.categoria || 'General';
+    const actual = mapa.get(cat) || { ingresos: 0, egresos: 0 };
+    mapa.set(cat, { ...actual, egresos: actual.egresos + (e.monto || 0) });
+  });
+
+  const maxNeto = Math.max(...Array.from(mapa.values()).map(v => Math.abs(v.ingresos - v.egresos)), 1);
+
+  this.rentabilidadCategorias = Array.from(mapa.entries())
+    .map(([categoria, val]) => {
+      const neto = val.ingresos - val.egresos;
+      return {
+        categoria,
+        ingresos: val.ingresos,
+        egresos: val.egresos,
+        neto,
+        porcentaje: Math.round((Math.abs(neto) / maxNeto) * 100)
+      };
+    })
+    .sort((a, b) => b.neto - a.neto);
+}
 }
