@@ -5,13 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { DashboardService } from '../services/dashboard.service';
 import { Movimiento, MetricCard } from '../models/movimiento.model';
 
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: '../dashboard.html',
-  styleUrl: '../dashboard.css'
-})
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
+})  
+//Clase
 export class Dashboard implements OnInit {
   // Inyectamos nuestro nuevo servicio especializado
   private dashboardService = inject(DashboardService);
@@ -30,6 +32,7 @@ export class Dashboard implements OnInit {
   totalNetoMovimientos: number = 0;
 
   // Control del Popup y Categorías dinámicas
+  modoEdicion: boolean = false;
   mostrarPopup: boolean = false;
   tipoMovimiento: 'INGRESO' | 'EGRESO' = 'INGRESO';
   categoriasDisponibles: string[] = [];
@@ -53,6 +56,16 @@ export class Dashboard implements OnInit {
     });
   }
 
+  abrirEditar(movimiento: Movimiento): void {
+  this.modoEdicion = true;
+  this.tipoMovimiento = movimiento.tipo || 'INGRESO';
+  this.nuevoMovimiento = { ...movimiento };
+  this.categoriasDisponibles = this.tipoMovimiento === 'INGRESO' 
+    ? ['Venta', 'Ganancia ocasional'] 
+    : ['Pago deuda','Nomina', 'Costos operacion'];
+    this.mostrarPopup = true;
+  }
+
   abrirFormulario(tipo: 'INGRESO' | 'EGRESO'): void {
     this.tipoMovimiento = tipo;
     this.mostrarPopup = true;
@@ -68,28 +81,48 @@ export class Dashboard implements OnInit {
 
   cerrarFormulario(): void {
     this.mostrarPopup = false;
+    this.modoEdicion = false;
+    this.nuevoMovimiento = this.inicializarFormulario();
   }
 
   registrarMovimiento(): void {
-    if (!this.nuevoMovimiento.monto || !this.nuevoMovimiento.descripcion) {
-      alert('Por favor, complete el monto y la descripción.');
-      return;
-    }
-
-    // El componente decide qué método del servicio llamar, pero ya no sabe de URLs ni de JSONs
-    const peticion = this.tipoMovimiento === 'INGRESO' 
-      ? this.dashboardService.registrarIngreso(this.nuevoMovimiento)
-      : this.dashboardService.registrarEgreso(this.nuevoMovimiento);
-
-    peticion.subscribe({
-      next: () => {
-        alert(`${this.tipoMovimiento} guardado con éxito en PostgreSQL.`);
-        this.cerrarFormulario();
-        this.cargarDatosDashboard(); // Refrescar métricas automáticamente
-      },
-      error: (err) => alert('Error de comunicación con el Backend.')
-    });
+  if (!this.nuevoMovimiento.monto || !this.nuevoMovimiento.descripcion) {
+    alert('Por favor, complete el monto y la descripción.');
+    return;
   }
+
+  if (this.modoEdicion) {
+    // ---- LÓGICA DE ACTUALIZACIÓN (PUT) ----
+    this.dashboardService.updateMovimiento(this.nuevoMovimiento).subscribe({
+      next: () => {
+        alert('Movimiento actualizado con éxito en PostgreSQL');
+        this.cerrarFormulario();
+        this.cargarDatosDashboard(); 
+      },
+      error: (err) => console.error('Error al actualizar:', err)
+    });
+  } else {
+    // ---- SOLUCIÓN AL ERROR DE CREACIÓN ----
+    // Evaluamos el tipo de movimiento para usar los métodos reales de tu Service
+    if (this.tipoMovimiento === 'INGRESO') {
+      this.dashboardService.registrarIngreso(this.nuevoMovimiento).subscribe({
+        next: () => {
+          this.cerrarFormulario();
+          this.cargarDatosDashboard();
+        },
+        error: (err) => console.error('Error al crear ingreso:', err)
+      });
+    } else {
+      this.dashboardService.registrarEgreso(this.nuevoMovimiento).subscribe({
+        next: () => {
+          this.cerrarFormulario();
+          this.cargarDatosDashboard();
+        },
+        error: (err) => console.error('Error al crear egreso:', err)
+      });
+    }
+  }
+}
 
   private calcularMetricasYTabla(): void {
     this.ingresosTotal = this.listaIngresos.reduce((sum, item) => sum + (item.monto || 0), 0);
@@ -111,6 +144,7 @@ export class Dashboard implements OnInit {
     this.totalNetoMovimientos = this.ultimosMovimientos.reduce((sum, item) => {
       return item.tipo === 'INGRESO' ? sum + (item.monto || 0) : sum - (item.monto || 0);
     }, 0);
+    this.calcularRentabilidadCategorias();
   }
 
   private inicializarFormulario(categoriaDefecto: string = ''): Movimiento {
@@ -122,4 +156,37 @@ export class Dashboard implements OnInit {
       fecha: new Date().toISOString().split('T')[0]
     };
   }
+  // Datos del gráfico de rentabilidad por categoría
+rentabilidadCategorias: { categoria: string; ingresos: number; egresos: number; neto: number; porcentaje: number }[] = [];
+
+private calcularRentabilidadCategorias(): void {
+  const mapa = new Map<string, { ingresos: number; egresos: number }>();
+
+  this.listaIngresos.forEach(i => {
+    const cat = i.categoria || 'General';
+    const actual = mapa.get(cat) || { ingresos: 0, egresos: 0 };
+    mapa.set(cat, { ...actual, ingresos: actual.ingresos + (i.monto || 0) });
+  });
+
+  this.listaEgresos.forEach(e => {
+    const cat = e.categoria || 'General';
+    const actual = mapa.get(cat) || { ingresos: 0, egresos: 0 };
+    mapa.set(cat, { ...actual, egresos: actual.egresos + (e.monto || 0) });
+  });
+
+  const maxNeto = Math.max(...Array.from(mapa.values()).map(v => Math.abs(v.ingresos - v.egresos)), 1);
+
+  this.rentabilidadCategorias = Array.from(mapa.entries())
+    .map(([categoria, val]) => {
+      const neto = val.ingresos - val.egresos;
+      return {
+        categoria,
+        ingresos: val.ingresos,
+        egresos: val.egresos,
+        neto,
+        porcentaje: Math.round((Math.abs(neto) / maxNeto) * 100)
+      };
+    })
+    .sort((a, b) => b.neto - a.neto);
+}
 }

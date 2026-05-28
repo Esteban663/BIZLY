@@ -34,9 +34,14 @@ export class ProductosComponent implements OnInit {
   productoEnEdicion: Producto | null = null;
   terminoBusqueda: string = '';
   categoriaSeleccionada: string = 'Todos';
+  stockFiltro: string = 'Todos';   // NUEVO: filtro de stock
 
   listaNotificaciones: string[] = [];
   mostrarModalNotificaciones: boolean = false;
+
+  // Errores de validación
+  errorPrecio: string = '';
+  errorCantidad: string = '';
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -44,64 +49,79 @@ export class ProductosComponent implements OnInit {
     this.refrescarTodo();
   }
 
-  /**
-   * Resetea filtros de búsqueda y trae los datos más recientes del servidor
-   */
   refrescarTodo(): void {
     this.terminoBusqueda = '';
     this.categoriaSeleccionada = 'Todos';
+    this.stockFiltro = 'Todos';
     this.limpiarFormulario();
     this.obtenerProductosDB();
   }
 
-  /**
-   * Consume el backend para traer la lista actualizada de productos
-   */
   obtenerProductosDB(): void {
     this.http.get<Producto[]>(this.apiUrl).subscribe({
       next: (data) => {
         this.listaProductos = [...data];
         this.verificarStockCritico();
-        this.cdr.detectChanges(); // Fuerza la detección de cambios en Angular
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error cargando datos del servidor:', err)
     });
   }
 
-  /**
-   * Valida si quedan pocas unidades (menos de 2) y dispara la notificación
-   */
   verificarStockCritico(): void {
     this.listaProductos.forEach(producto => {
       if (producto.cantidad < 2) {
-        const yaExisteAlerta = this.listaNotificaciones.some(n =>
+        const yaExiste = this.listaNotificaciones.some(n =>
           n.includes(`⚠️ STOCK BAJO: "${producto.nombre}"`)
         );
-        if (!yaExisteAlerta) {
+        if (!yaExiste) {
           this.agregarNotificacion(`⚠️ STOCK BAJO: "${producto.nombre}" (Solo quedan ${producto.cantidad} u.).`);
         }
       }
     });
   }
 
-  /**
-   * Filtro dinámico en tiempo real para la barra de búsqueda
-   */
   get productosFiltrados(): Producto[] {
     return this.listaProductos.filter(producto => {
       const termino = this.terminoBusqueda.toLowerCase().trim();
+
       const coincideTexto = !termino ||
         (producto.nombre && producto.nombre.toLowerCase().includes(termino)) ||
         (producto.codigo && producto.codigo.toLowerCase().includes(termino));
+
       const coincideCategoria = this.categoriaSeleccionada === 'Todos' ||
         (producto.categoria && producto.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase());
-      return coincideTexto && coincideCategoria;
+
+      // NUEVO: filtro de stock
+      const coincideStock =
+        this.stockFiltro === 'Todos' ||
+        (this.stockFiltro === 'Disponible' && producto.cantidad >= 2) ||
+        (this.stockFiltro === 'StockBajo' && producto.cantidad < 2);
+
+      return coincideTexto && coincideCategoria && coincideStock;
     });
   }
 
-  /**
-   * Agrega un evento con hora actual al historial de notificaciones
-   */
+  // NUEVO: validar que precio no sea negativo
+  validarPrecio(): void {
+    if (this.formPrecio !== null && this.formPrecio < 0) {
+      this.formPrecio = 0;
+      this.errorPrecio = 'El precio no puede ser negativo.';
+    } else {
+      this.errorPrecio = '';
+    }
+  }
+
+  // NUEVO: validar que cantidad no sea negativa
+  validarCantidad(): void {
+    if (this.formCantidad !== null && this.formCantidad < 0) {
+      this.formCantidad = 0;
+      this.errorCantidad = 'La cantidad no puede ser negativa.';
+    } else {
+      this.errorCantidad = '';
+    }
+  }
+
   agregarNotificacion(mensaje: string): void {
     const ahora = new Date();
     const horaTexto = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -118,9 +138,7 @@ export class ProductosComponent implements OnInit {
 
   alternarFormulario(): void {
     this.mostrarFormulario = !this.mostrarFormulario;
-    if (!this.mostrarFormulario) {
-      this.limpiarFormulario();
-    }
+    if (!this.mostrarFormulario) this.limpiarFormulario();
   }
 
   limpiarFormulario(): void {
@@ -130,14 +148,18 @@ export class ProductosComponent implements OnInit {
     this.formCantidad = null;
     this.formCodigo = '';
     this.formCategoria = 'General';
+    this.errorPrecio = '';
+    this.errorCantidad = '';
   }
 
-  /**
-   * Guarda o actualiza el producto y ejecuta la recarga automática
-   */
   guardarProducto(): void {
     if (!this.formNombre || !this.formCodigo || this.formPrecio === null || this.formCantidad === null) {
       alert('Por favor, rellene todos los campos obligatorios del producto.');
+      return;
+    }
+
+    if (this.formPrecio < 0 || this.formCantidad < 0) {
+      alert('El precio y la cantidad no pueden ser negativos.');
       return;
     }
 
@@ -152,23 +174,22 @@ export class ProductosComponent implements OnInit {
     const nombreGuardado = this.formNombre;
     const codigoGuardado = this.formCodigo;
 
-    // CASO: EDITAR PRODUCTO (PUT)
     if (this.productoEnEdicion) {
-      datosProducto.id = this.productoEnEdicion.id;
+      const id = this.productoEnEdicion.id;
+      datosProducto.id = id;
       this.alternarFormulario();
 
-      this.http.put(`${this.apiUrl}/${datosProducto.id}`, datosProducto).subscribe({
+      this.http.put(`${this.apiUrl}/${id}`, datosProducto).subscribe({
         next: () => {
           this.agregarNotificacion(`Se actualizó el producto: "${nombreGuardado}" (Código: ${codigoGuardado}).`);
           this.obtenerProductosDB();
         },
-        error: (err) => {
+        error: () => {
           alert('Error al actualizar en la Base de Datos');
-          this.refrescarTodo();
+          this.obtenerProductosDB();
         }
       });
 
-    // CASO: NUEVO PRODUCTO (POST)
     } else {
       this.alternarFormulario();
 
@@ -177,9 +198,9 @@ export class ProductosComponent implements OnInit {
           this.agregarNotificacion(`Se guardó el producto: "${nombreGuardado}".`);
           this.obtenerProductosDB();
         },
-        error: (err) => {
+        error: () => {
           alert('Error al guardar en la Base de Datos');
-          this.refrescarTodo();
+          this.obtenerProductosDB();
         }
       });
     }
@@ -195,9 +216,6 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = true;
   }
 
-  /**
-   * Elimina un producto y refresca la tabla
-   */
   eliminarProducto(id: number): void {
     const productoABorrar = this.listaProductos.find(p => p.id === id);
     if (productoABorrar && confirm(`¿Estás seguro de que deseas eliminar permanentemente "${productoABorrar.nombre}"?`)) {
@@ -206,7 +224,7 @@ export class ProductosComponent implements OnInit {
           this.agregarNotificacion(`Se eliminó el producto: "${productoABorrar.nombre}".`);
           this.obtenerProductosDB();
         },
-        error: (err) => alert('Error al eliminar de la Base de Datos')
+        error: () => alert('Error al eliminar de la Base de Datos')
       });
     }
   }
